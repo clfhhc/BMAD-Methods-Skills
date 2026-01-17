@@ -44,7 +44,11 @@ Apply Phase 2 path adaptations and Phase 3 meta-docs.
     - If **Project-Specific**: Prefer relative paths within the project.
 
 ### Step 5: Install Skills
-Move the enhanced skills from `.temp/converted-skills` to the final destination based on Step 1 and 2.
+Run the `install` command to move the enhanced skills to their final destination.
+
+1.  **Install**: Run `npx @clfhhc/bmad-methods-skills install --from .temp/converted-skills --tool [TOOL] --force`
+    - Replace `[TOOL]` with `antigravity`, `cursor`, or `claude`.
+    - Use `--force` to overwrite if you are sure.
 
 | Tool | Scope | Destination |
 |------|-------|-------------|
@@ -53,7 +57,7 @@ Move the enhanced skills from `.temp/converted-skills` to the final destination 
 | **Cursor** | Local | `./.cursor/skills/` |
 | **Antigravity** | Local | `./.agent/skills/` |
 
-*Note: Create directories if they don't exist.*
+*Note: The CLI will handle directory creation and copying.*
 
 ### Step 6: Verify
 Ensure all file paths in the `SKILL.md` files are correct and that any referenced `data/` or `knowledge/` folders were moved correctly.

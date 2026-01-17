@@ -17,6 +17,8 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
     outputDir: null,
+    repoUrl: null,
+    branch: null,
     identityCharLimit: null,
     addExamples: null,
     addBestPractices: null,
@@ -30,6 +32,10 @@ function parseArgs() {
     
     if (arg === '--output-dir' && i + 1 < args.length) {
       options.outputDir = args[++i];
+    } else if (arg === '--repo' && i + 1 < args.length) {
+      options.repoUrl = args[++i];
+    } else if (arg === '--branch' && i + 1 < args.length) {
+      options.branch = args[++i];
     } else if (arg === '--identity-limit' && i + 1 < args.length) {
       const limit = Number.parseInt(args[++i], 10);
       options.identityCharLimit = Number.isNaN(limit) ? null : limit;
@@ -74,6 +80,9 @@ Usage: pnpm convert [options]
 Options:
   --output-dir <path>        Custom output directory (default: ./skills)
                             Use a non-version-controlled folder for custom configs
+  
+  --repo <url>              Override BMAD repository URL
+  --branch <name>           Override BMAD branch (default: main)
   
   --identity-limit <num>    Character limit for identity in description
                             (default: no limit, use --identity-limit 200 to enable old behavior)
@@ -123,6 +132,14 @@ try {
   // Merge CLI options with config
   if (cliOptions.outputDir) {
     config.outputDir = cliOptions.outputDir;
+  }
+  if (cliOptions.repoUrl) {
+    config.bmadRepo = cliOptions.repoUrl;
+    console.log(`ℹ️  Overriding BMAD Repo: ${config.bmadRepo}`);
+  }
+  if (cliOptions.branch) {
+    config.bmadBranch = cliOptions.branch;
+    console.log(`ℹ️  Overriding BMAD Branch: ${config.bmadBranch}`);
   }
 
   // Initialize enhancements config if not present
