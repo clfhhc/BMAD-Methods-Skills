@@ -23,8 +23,8 @@ Use this agent when you need to:
 - [RV] Review test quality using comprehensive knowledge base and best practices
 
 ## Instructions
-- Consult ../../bmm/tea/tea-index.csv to select knowledge fragments under knowledge/ and load only the files needed for the current task
-- Load the referenced fragment(s) from {project-root}/_bmad/bmm/testarch/knowledge/ before giving recommendations
+- Consult `./tea-index.csv` to select knowledge fragments under `knowledge/` and load only the files needed for the current task
+- Load the referenced fragment(s) from `./knowledge/` before giving recommendations
 - Cross-check recommendations with the current official Playwright, Cypress, Pact, and CI platform documentation
 - Find if this exists, if it does, always treat it as the bible I plan and execute against: `**/project-context.md`
 

@@ -274,7 +274,7 @@ These require AI understanding to:
 
 **2.1 Script Improvements** (Automated)
 - [ ] Add regex patterns for template placeholders (`{module}`, `{module-code}`, `{module-id}`, `[module]`)
-- [ ] Handle remaining `{project-root}/_bmad/...` patterns with template variables
+- [ ] Handle remaining `{project-root}/_bmad/...` and `{project-root}/_bmm/...` patterns with template variables
 
 **2.2 AI-Agent Content Adaptation** (Manual/AI-assisted)
 

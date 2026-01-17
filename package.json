@@ -5,6 +5,9 @@
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "main": "convert.js",
+  "bin": {
+    "bmad-skills": "./src/cli/init.js"
+  },
   "scripts": {
     "convert": "node convert.js",
     "clean": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./.temp'); console.log('Cleaned temp directory'); } catch(e) { console.error('Error:', e.message); } })\"",

@@ -130,6 +130,19 @@ Remove both `skills/` and temporary files (full clean):
 pnpm clean:all
 ```
 
+## Distribution (New Projects)
+
+To install the BMAD bootstrap skill into a new project, you can use `npx`:
+
+```bash
+npx @clfhhc/BMAD-Methods-Skills init
+```
+
+This will:
+1. Detect your AI tool (.agent, .cursor, or .claude)
+2. Install the `bootstrap-bmad-skills` into your project
+3. Enable the `BS` command to fetch and install all other BMAD skills
+
 ## Output Structure
 
 The converter generates skills organized by module in the `skills/` directory at the project root:
