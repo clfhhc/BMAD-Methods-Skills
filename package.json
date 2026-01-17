@@ -24,7 +24,12 @@
     "clean:all": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./skills'); fs.removeSync('./.temp'); console.log('Cleaned skills and temp directories'); } catch(e) { console.error('Error:', e.message); } })\"",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "release": "semantic-release"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "keywords": [
     "bmad",
@@ -35,12 +40,16 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "js-yaml": "^4.1.0",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
+    "js-yaml": "^4.1.0",
     "simple-git": "^3.22.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4"
+    "@biomejs/biome": "^1.9.4",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^25.0.2"
   }
 }

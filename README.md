@@ -1,5 +1,8 @@
 # BMAD-Methods-Skills
 
+[![Release](https://github.com/clfhhc/BMAD-Methods-Skills/actions/workflows/release.yml/badge.svg)](https://github.com/clfhhc/BMAD-Methods-Skills/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/@clfhhc/bmad-methods-skills.svg)](https://www.npmjs.com/package/@clfhhc/bmad-methods-skills)
+
 Automatically convert BMAD-METHOD agents and workflows to Claude Skills format.
 
 ## Distribution (New Projects)
