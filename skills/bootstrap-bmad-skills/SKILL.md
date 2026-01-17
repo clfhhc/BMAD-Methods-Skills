@@ -15,52 +15,28 @@ This skill guides the user through fetching, converting, enhancing, and installi
 
 ---
 
-## Workflow
+### Step 1: Automated Bootstrap (Recommended)
+Run the automated bootstrap command to fetch, convert, and install the full BMAD method suite.
+1.  **Run**: `npx @clfhhc/bmad-methods-skills init --bootstrap`
+2.  **Verify**: Check that skills are installed in the tool directory (e.g., `.agent/skills`).
 
-### Step 1: Tool Identification
-Ask the user which tool(s) they are using. Multiple selections are allowed.
-- [ ] Claude Code
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Other (Specify)
+### Step 2: Manual Workflow (Alternative)
+If custom configuration is needed, follow these steps:
 
-### Step 2: Installation Scope
-Ask whether to install the skills as global or project-specific.
-- **Global**: Skills will be available across all projects for that tool.
-- **Project-Specific**: Skills will be limited to the current repository.
+**2.1 Fetch & Convert**
+Run `npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills` to fetch the `main` branch and convert agents/workflows.
 
-### Step 3: Fetch & Convert
-Inform the user that you will now fetch the `bmad-methods` main branch and convert it in a temporary folder.
+**2.2 Apply Enhancements**
+1.  **Scan Paths**: Check for `{project-root}` references.
+2.  **Adapt Paths**: Adjust paths for your specific installation scope.
 
-1.  **Convert**: Run `npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills`
-    - This fetches the `main` branch of BMAD-METHOD and converts all agents/workflows.
+**2.3 Install Skills**
+Run the `install` command to move skills to their final destination.
+- Run `npx @clfhhc/bmad-methods-skills install --from .temp/converted-skills --tool [TOOL] --force`
+  - Replace `[TOOL]` with `antigravity`, `cursor`, or `claude`.
 
-### Step 4: Apply Enhancements
-Apply Phase 2 path adaptations and Phase 3 meta-docs.
-
-1.  **Scan Paths**: Use the `enhance-bmad-skills` (`SP`) command to scan the converted skills for `{project-root}` references.
-2.  **Adapt Paths**: Propose path adaptations (relative vs absolute) based on the target installation type.
-    - If **Global**: Prefer absolute paths or relative to a fixed global root.
-    - If **Project-Specific**: Prefer relative paths within the project.
-
-### Step 5: Install Skills
-Run the `install` command to move the enhanced skills to their final destination.
-
-1.  **Install**: Run `npx @clfhhc/bmad-methods-skills install --from .temp/converted-skills --tool [TOOL] --force`
-    - Replace `[TOOL]` with `antigravity`, `cursor`, or `claude`.
-    - Use `--force` to overwrite if you are sure.
-
-| Tool | Scope | Destination |
-|------|-------|-------------|
-| **Claude Code** | Global | `~/.claude/skills/` |
-| **Claude Code** | Local | `./.claude/skills/` |
-| **Cursor** | Local | `./.cursor/skills/` |
-| **Antigravity** | Local | `./.agent/skills/` |
-
-*Note: The CLI will handle directory creation and copying.*
-
-### Step 6: Verify
-Ensure all file paths in the `SKILL.md` files are correct and that any referenced `data/` or `knowledge/` folders were moved correctly.
+### Step 3: Verify
+Ensure all file paths in the `SKILL.md` files are correct and that `data/` or `knowledge/` folders were moved correctly (automated in Step 1).
 
 ---
 
