@@ -272,13 +272,18 @@ These require AI understanding to:
 
 #### Phase 2 Implementation Tasks
 
-**2.1 Script Improvements** (Automated)
-- [ ] Add regex patterns for template placeholders (`{module}`, `{module-code}`, `{module-id}`, `[module]`)
-- [ ] Handle remaining `{project-root}/_bmad/...` and `{project-root}/_bmm/...` patterns with template variables
+**2.1 Script Improvements** (Automated) ✅ COMPLETED
+- ✅ Add regex patterns for template placeholders (`{module}`, `{module-code}`, `{module-id}`, `[module]`)
+- ✅ Handle remaining `{project-root}/_bmad/...` and `{project-root}/_bmm/...` patterns with template variables
 
-**2.2 AI-Agent Content Adaptation** (Manual/AI-assisted)
+**2.2 Automation & Data Migration** (Automated) ✅ COMPLETED
+- ✅ Implemented `resource-migrator.js` to automatically move data/knowledge assets
+- ✅ integrated into `init --bootstrap` command for one-click setup
+- ✅ Updated `path-rewriter.js` to handle migrated resource paths relative to skills
 
-Create an `adapt-skill-paths` skill that:
+**2.3 AI-Agent Content Adaptation** (Manual/AI-assisted)
+
+Create an `enhance-bmad-skills` skill that:
 1. Reviews skills for semantic path references in instructions
 2. Identifies if referenced content exists in converted skill structure
 3. Proposes adapted instructions using relative skill paths
@@ -287,14 +292,12 @@ Create an `adapt-skill-paths` skill that:
 **Skills requiring AI review:**
 - `skills/bmb/agent/data/critical-actions.md`
 - `skills/bmb/agent/data/reference/module-examples/trend-analyst.agent.yaml`
-- `skills/bmm/tea/SKILL.md`
-- `skills/bmm/tech-writer/SKILL.md`
+- `skills/bmm/tea/SKILL.md` (partially handled by migration)
+- `skills/bmm/tech-writer/SKILL.md` (partially handled by migration)
 
-**2.3 Content Migration** (Manual)
-
-Some skills reference content that should be migrated:
-- `bmm/testarch/knowledge/` fragments → should be in `skills/bmm/tea/knowledge/`
-- `bmm/data/documentation-standards.md` → should be in `skills/bmm/tech-writer/`
+**2.4 Content Migration** (Manual) ✅ COMPLETED
+- ✅ `bmm/testarch/knowledge/` fragments migrated to `skills/bmm/tea/knowledge/`
+- ✅ `bmm/data/documentation-standards.md` migrated to `skills/bmm/tech-writer/data/`
 
 
 - `CLAUDE.md` - Instructions for Claude on using the skills ecosystem

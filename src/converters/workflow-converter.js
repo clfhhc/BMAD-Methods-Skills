@@ -17,7 +17,7 @@ export async function convertWorkflowToSkill(
   instructionsPath,
   workflowDir,
   instructionsType = null,
-  options = {},
+  options = {}
 ) {
   if (!workflowPath || !(await fs.pathExists(workflowPath))) {
     throw new Error(`Workflow file not found: ${workflowPath}`);
@@ -43,19 +43,21 @@ export async function convertWorkflowToSkill(
 
       // Parse frontmatter and content
       // More flexible regex: allows optional newlines and handles various formats
-      const frontmatterMatch = workflowContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
-      
+      const frontmatterMatch = workflowContent.match(
+        /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/
+      );
+
       if (frontmatterMatch) {
         // Has frontmatter
         const frontmatterYaml = frontmatterMatch[1];
         const markdownContent = frontmatterMatch[2];
-        
+
         try {
           workflow = yaml.load(frontmatterYaml) || {};
         } catch (yamlError) {
           throw new Error(`Invalid YAML frontmatter: ${yamlError.message}`);
         }
-        
+
         // The markdown content IS the instructions
         instructionsContent = parseInstructions(markdownContent);
       } else {
@@ -76,13 +78,13 @@ export async function convertWorkflowToSkill(
       // Example: <task id="..." name="Advanced Elicitation" standalone="true" ...>
       const nameMatch = xmlContent.match(/name="([^"]+)"/);
       const standaloneMatch = xmlContent.match(/standalone="([^"]+)"/);
-      
+
       workflow = {
         name: nameMatch ? nameMatch[1] : path.basename(workflowDir),
         description: nameMatch ? nameMatch[1] : 'XML Workflow',
         standalone: standaloneMatch ? standaloneMatch[1] === 'true' : true,
       };
-      
+
       // Parse the XML content as instructions
       instructionsContent = parseXmlInstructions(xmlContent);
     } else {
@@ -101,7 +103,7 @@ export async function convertWorkflowToSkill(
 
       if (!workflow) {
         throw new Error(
-          'Invalid workflow.yaml structure: file is empty or invalid',
+          'Invalid workflow.yaml structure: file is empty or invalid'
         );
       }
 
@@ -119,9 +121,7 @@ export async function convertWorkflowToSkill(
     }
 
     // Extract workflow metadata
-    const name = sanitizeName(
-      workflow.name || path.basename(workflowDir),
-    );
+    const name = sanitizeName(workflow.name || path.basename(workflowDir));
     const description = workflow.description || 'Workflow';
     const standalone = workflow.standalone !== false; // Default to true
     const inputs = workflow.inputs || {};
@@ -133,13 +133,16 @@ export async function convertWorkflowToSkill(
     const checklistPath = path.join(workflowDir, 'checklist.md');
     const hasTemplate = await fs.pathExists(templatePath);
     const hasChecklist = await fs.pathExists(checklistPath);
-    
+
     // Discover CSV method files (brain-methods.csv, methods.csv, *-methods.csv)
     const methodsFiles = [];
     try {
       const files = await fs.readdir(workflowDir);
       for (const file of files) {
-        if (file.endsWith('.csv') && (file.includes('method') || file.includes('brain'))) {
+        if (
+          file.endsWith('.csv') &&
+          (file.includes('method') || file.includes('brain'))
+        ) {
           const csvPath = path.join(workflowDir, file);
           try {
             const csvContent = await fs.readFile(csvPath, 'utf-8');
@@ -161,7 +164,7 @@ export async function convertWorkflowToSkill(
     } catch {
       // Ignore errors reading directory
     }
-    
+
     // Discover step files in steps/ directory
     const stepsDir = path.join(workflowDir, 'steps');
     const stepFiles = [];
@@ -177,14 +180,17 @@ export async function convertWorkflowToSkill(
         // Ignore errors reading steps directory
       }
     }
-    
+
     // Read previews of related files (first 3 lines)
     let templatePreview = null;
     let checklistPreview = null;
     if (hasTemplate) {
       try {
         const templateContent = await fs.readFile(templatePath, 'utf-8');
-        const templateLines = templateContent.split('\n').slice(0, 3).filter((l) => l.trim());
+        const templateLines = templateContent
+          .split('\n')
+          .slice(0, 3)
+          .filter((l) => l.trim());
         if (templateLines.length > 0) {
           templatePreview = templateLines.join('\n').substring(0, 200);
         }
@@ -195,7 +201,10 @@ export async function convertWorkflowToSkill(
     if (hasChecklist) {
       try {
         const checklistContent = await fs.readFile(checklistPath, 'utf-8');
-        const checklistLines = checklistContent.split('\n').slice(0, 3).filter((l) => l.trim());
+        const checklistLines = checklistContent
+          .split('\n')
+          .slice(0, 3)
+          .filter((l) => l.trim());
         if (checklistLines.length > 0) {
           checklistPreview = checklistLines.join('\n').substring(0, 200);
         }
@@ -230,7 +239,7 @@ export async function convertWorkflowToSkill(
     return skillContent;
   } catch (error) {
     throw new Error(
-      `Failed to convert workflow ${workflowPath}: ${error.message}`,
+      `Failed to convert workflow ${workflowPath}: ${error.message}`
     );
   }
 }
@@ -284,7 +293,7 @@ function parseXmlInstructions(xmlContent) {
         return `\n\n## Critical Instructions\n\n${items.map((i) => `> ⚠️ ${i}`).join('\n')}\n`;
       }
       return '';
-    },
+    }
   );
 
   // Remove any remaining <llm> tags
@@ -297,7 +306,7 @@ function parseXmlInstructions(xmlContent) {
     (_match, desc, content) => {
       const items = extractInstructionItems(content);
       return `\n\n## ${desc}\n\n${items.map((i) => `- ${i}`).join('\n')}\n`;
-    },
+    }
   );
 
   // Convert <flow>...</flow> wrapper
@@ -310,7 +319,7 @@ function parseXmlInstructions(xmlContent) {
     (_match, num, title, goal) => {
       const stepTitle = title || goal || `Step ${num}`;
       return `\n\n### Step ${num}: ${stepTitle}\n`;
-    },
+    }
   );
   parsed = parsed.replace(/<\/step>/gi, '');
 
@@ -320,7 +329,7 @@ function parseXmlInstructions(xmlContent) {
     (_match, caseId, content) => {
       const items = extractInstructionItems(content);
       return `\n\n**Case "${caseId}":**\n${items.map((i) => `  - ${i}`).join('\n')}\n`;
-    },
+    }
   );
 
   // Convert named sections like <csv-structure>, <context-analysis>, <smart-selection>, <format>, <response-handling>
@@ -337,14 +346,14 @@ function parseXmlInstructions(xmlContent) {
   for (const section of namedSections) {
     const sectionRegex = new RegExp(
       `<${section}[^>]*>([\\s\\S]*?)<\\/${section}>`,
-      'gi',
+      'gi'
     );
     parsed = parsed.replace(sectionRegex, (_match, content) => {
       const sectionTitle = section
         .split('-')
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ');
-      
+
       // Check if content has <i> items or is plain text
       const items = extractInstructionItems(content);
       if (items.length > 0) {
@@ -378,9 +387,12 @@ function parseXmlInstructions(xmlContent) {
   });
 
   // Convert <critical>...</critical>
-  parsed = parsed.replace(/<critical>([^<]+)<\/critical>/gi, (_match, content) => {
-    return `\n> **Critical:** ${content.trim()}`;
-  });
+  parsed = parsed.replace(
+    /<critical>([^<]+)<\/critical>/gi,
+    (_match, content) => {
+      return `\n> **Critical:** ${content.trim()}`;
+    }
+  );
 
   // Convert <output>...</output>
   parsed = parsed.replace(/<output>([^<]+)<\/output>/gi, (_match, content) => {
@@ -396,26 +408,26 @@ function parseXmlInstructions(xmlContent) {
         return `\n\n**Check if:** ${condition}\n${items.map((i) => `- ${i}`).join('\n')}\n`;
       }
       return `\n\n**Check if:** ${condition}\n`;
-    },
+    }
   );
   parsed = parsed.replace(/<\/check>/gi, '');
 
   // Convert <goto anchor="..."/>
   parsed = parsed.replace(
     /<goto\s+anchor="([^"]+)"\s*\/>/gi,
-    (_match, anchor) => `\n→ Go to: **${anchor}**`,
+    (_match, anchor) => `\n→ Go to: **${anchor}**`
   );
 
   // Convert <invoke-workflow>...</invoke-workflow>
   parsed = parsed.replace(
     /<invoke-workflow>([^<]+)<\/invoke-workflow>/gi,
-    (_match, content) => `\n- **Invoke Workflow:** ${content.trim()}`,
+    (_match, content) => `\n- **Invoke Workflow:** ${content.trim()}`
   );
 
   // Convert <template-output>...</template-output>
   parsed = parsed.replace(
     /<template-output>([^<]+)<\/template-output>/gi,
-    (_match, content) => `\n**Template Output:** ${content.trim()}`,
+    (_match, content) => `\n**Template Output:** ${content.trim()}`
   );
 
   // Clean up any remaining XML tags
@@ -437,22 +449,22 @@ function parseXmlInstructions(xmlContent) {
  */
 function extractInstructionItems(content) {
   const items = [];
-  
+
   // Helper to normalize whitespace (replace newlines and multiple spaces with single space)
   const normalize = (text) => text.replace(/\s+/g, ' ').trim();
-  
+
   // Extract <desc> first
   const descMatches = content.matchAll(/<desc>([\s\S]*?)<\/desc>/gi);
   for (const match of descMatches) {
     items.push(normalize(match[1]));
   }
-  
+
   // Extract <i> items (use [\s\S] to match across newlines)
   const iMatches = content.matchAll(/<i>([\s\S]*?)<\/i>/gi);
   for (const match of iMatches) {
     items.push(normalize(match[1]));
   }
-  
+
   return items;
 }
 
@@ -469,7 +481,7 @@ function parseInstructions(instructions) {
     /<step\s+n="(\d+)"(?:\s+goal="([^"]+)")?>/gi,
     (_match, num, goal) => {
       return goal ? `## Step ${num}: ${goal}` : `## Step ${num}:`;
-    },
+    }
   );
 
   // Convert </step> to empty (just close the section)
@@ -481,12 +493,9 @@ function parseInstructions(instructions) {
   });
 
   // Convert <action>...</action> to **Action:** ...
-  parsed = parsed.replace(
-    /<action>(.*?)<\/action>/gis,
-    (_match, content) => {
-      return `**Action:** ${content.trim()}`;
-    },
-  );
+  parsed = parsed.replace(/<action>(.*?)<\/action>/gis, (_match, content) => {
+    return `**Action:** ${content.trim()}`;
+  });
 
   // Convert <check>...</check> to **Check:** ...
   parsed = parsed.replace(/<check>(.*?)<\/check>/gis, (_match, content) => {
@@ -498,7 +507,7 @@ function parseInstructions(instructions) {
     /<invoke-workflow>(.*?)<\/invoke-workflow>/gis,
     (_match, content) => {
       return `**Invoke Workflow:** ${content.trim()}`;
-    },
+    }
   );
 
   // Convert <template-output>...</template-output> to **Template Output:** ...
@@ -506,7 +515,7 @@ function parseInstructions(instructions) {
     /<template-output>(.*?)<\/template-output>/gis,
     (_match, content) => {
       return `**Template Output:** ${content.trim()}`;
-    },
+    }
   );
 
   return parsed;
@@ -583,12 +592,14 @@ ${Object.entries(inputs)
       const type = value.type || '';
       const required = value.required !== undefined ? value.required : null;
       const defaultValue = value.default !== undefined ? value.default : null;
-      
+
       let inputLine = `- **${key}**`;
       if (type) inputLine += ` (${type})`;
-      if (required !== null) inputLine += ` ${required ? '[required]' : '[optional]'}`;
+      if (required !== null)
+        inputLine += ` ${required ? '[required]' : '[optional]'}`;
       if (desc) inputLine += `: ${desc}`;
-      if (defaultValue !== null) inputLine += ` (default: ${JSON.stringify(defaultValue)})`;
+      if (defaultValue !== null)
+        inputLine += ` (default: ${JSON.stringify(defaultValue)})`;
       return inputLine;
     }
     // Handle simple string values
@@ -607,7 +618,7 @@ ${Object.entries(outputs)
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       const desc = value.description || '';
       const type = value.type || '';
-      
+
       let outputLine = `- **${key}**`;
       if (type) outputLine += ` (${type})`;
       if (desc) outputLine += `: ${desc}`;
@@ -623,10 +634,10 @@ ${Object.entries(outputs)
   // Add Related Files section
   const hasMethodsFiles = methodsFiles.length > 0;
   const hasStepFiles = stepFiles.length > 0;
-  
+
   if (hasTemplate || hasChecklist || hasMethodsFiles || hasStepFiles) {
     content += '\n\n## Supporting Files';
-    
+
     // Methods/techniques CSV files (for progressive disclosure)
     if (hasMethodsFiles) {
       content += '\n\n### Methods Reference';
@@ -640,7 +651,7 @@ ${Object.entries(outputs)
         }
       }
     }
-    
+
     // Step files in steps/ directory
     if (hasStepFiles) {
       content += '\n\n### Workflow Step Files';
@@ -649,18 +660,20 @@ ${Object.entries(outputs)
         content += `\n- [${step}](steps/${step})`;
       }
     }
-    
+
     // Template and checklist
     if (hasTemplate) {
       content += '\n\n### Document Template';
-      content += '\n- [template.md](template.md) - Document template for this workflow';
+      content +=
+        '\n- [template.md](template.md) - Document template for this workflow';
       if (templatePreview) {
         content += `\n\n  Preview:\n  \`\`\`\n  ${templatePreview}\n  \`\`\``;
       }
     }
     if (hasChecklist) {
       content += '\n\n### Validation Checklist';
-      content += '\n- [checklist.md](checklist.md) - Validation checklist for this workflow';
+      content +=
+        '\n- [checklist.md](checklist.md) - Validation checklist for this workflow';
       if (checklistPreview) {
         content += `\n\n  Preview:\n  \`\`\`\n  ${checklistPreview}\n  \`\`\``;
       }

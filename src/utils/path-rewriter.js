@@ -151,8 +151,8 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
   // Rewrite documentation-standards.md references (migrated to tech-writer/data)
   // {project-root}/_bmad/bmm/data/documentation-standards.md -> ../../bmm/tech-writer/data/documentation-standards.md
   // But wait, if we are IN tech-writer, it should be ./data/documentation-standards.md
-  // The relativePrefix logic handles ../.. but we might prefer a direct replacement here 
-  // since it's a specific file. 
+  // The relativePrefix logic handles ../.. but we might prefer a direct replacement here
+  // since it's a specific file.
   // Let's rely on the generic ../..bmm/tech-writer/data approach which works from anywhere.
   result = result.replace(
     /\{project-root\}\/_bmad\/bmm\/data\/documentation-standards\.md/g,
@@ -280,5 +280,5 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
  */
 export function shouldRewritePaths(filename) {
   const extensions = ['.md', '.yaml', '.yml', '.xml', '.txt', '.csv'];
-  return extensions.some(ext => filename.toLowerCase().endsWith(ext));
+  return extensions.some((ext) => filename.toLowerCase().endsWith(ext));
 }

@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 export async function findAgentsAndWorkflows(
   bmadRoot,
   agentPaths,
-  workflowPaths,
+  workflowPaths
 ) {
   if (!bmadRoot || !(await fs.pathExists(bmadRoot))) {
     throw new Error(`BMAD root directory does not exist: ${bmadRoot}`);
@@ -28,11 +28,7 @@ export async function findAgentsAndWorkflows(
   // Find all agent.yaml files
   for (const pattern of agentPaths) {
     try {
-      const fullPattern = path.join(
-        bmadRoot,
-        pattern,
-        '**/*.agent.yaml',
-      );
+      const fullPattern = path.join(bmadRoot, pattern, '**/*.agent.yaml');
       const files = await glob(fullPattern, {
         ignore: ['node_modules/**', '.git/**'],
       });
@@ -62,13 +58,13 @@ export async function findAgentsAndWorkflows(
           });
         } catch (error) {
           console.warn(
-            `Warning: Failed to process agent file ${filePath}: ${error.message}`,
+            `Warning: Failed to process agent file ${filePath}: ${error.message}`
           );
         }
       }
     } catch (error) {
       console.warn(
-        `Warning: Failed to search for agents in pattern ${pattern}: ${error.message}`,
+        `Warning: Failed to search for agents in pattern ${pattern}: ${error.message}`
       );
     }
   }
@@ -76,14 +72,23 @@ export async function findAgentsAndWorkflows(
   // Find all workflow.yaml, workflow.md, and workflow.xml files
   // Use a Map to deduplicate by directory (prefer yaml > md > xml)
   const workflowsByDir = new Map();
-  
+
   for (const pattern of workflowPaths) {
     // Search for workflow.yaml, workflow.md, and workflow.xml recursively
     // Priority: yaml > md > xml (if multiple exist in same directory)
     const workflowPatterns = [
-      { pattern: path.join(bmadRoot, pattern, '**', 'workflow.yaml'), priority: 1 },
-      { pattern: path.join(bmadRoot, pattern, '**', 'workflow.md'), priority: 2 },
-      { pattern: path.join(bmadRoot, pattern, '**', 'workflow.xml'), priority: 3 },
+      {
+        pattern: path.join(bmadRoot, pattern, '**', 'workflow.yaml'),
+        priority: 1,
+      },
+      {
+        pattern: path.join(bmadRoot, pattern, '**', 'workflow.md'),
+        priority: 2,
+      },
+      {
+        pattern: path.join(bmadRoot, pattern, '**', 'workflow.xml'),
+        priority: 3,
+      },
     ];
 
     for (const { pattern: fullPattern, priority } of workflowPatterns) {
@@ -98,7 +103,7 @@ export async function findAgentsAndWorkflows(
             const absolutePath = path.isAbsolute(filePath)
               ? filePath
               : path.resolve(bmadRoot, filePath);
-            
+
             // Validate file exists and is readable
             if (!(await fs.pathExists(absolutePath))) {
               console.warn(`Warning: Workflow file not found: ${absolutePath}`);
@@ -106,7 +111,7 @@ export async function findAgentsAndWorkflows(
             }
 
             const workflowDir = path.dirname(absolutePath);
-            
+
             // Skip if we already have a higher priority workflow for this directory
             const existing = workflowsByDir.get(workflowDir);
             if (existing && existing.priority <= priority) {
@@ -118,11 +123,11 @@ export async function findAgentsAndWorkflows(
             const name = path.basename(workflowDir);
             const isMarkdown = absolutePath.endsWith('.md');
             const isXml = absolutePath.endsWith('.xml');
-            
+
             // Determine instructions path based on workflow type
             let instructionsPath = null;
             let instructionsType = null;
-            
+
             if (isMarkdown) {
               // workflow.md IS the instructions file
               instructionsPath = absolutePath;
@@ -135,15 +140,16 @@ export async function findAgentsAndWorkflows(
               // workflow.yaml - look for separate instructions files
               const instructionsMdPath = path.join(
                 workflowDir,
-                'instructions.md',
+                'instructions.md'
               );
               const instructionsXmlPath = path.join(
                 workflowDir,
-                'instructions.xml',
+                'instructions.xml'
               );
 
               const hasInstructionsMd = await fs.pathExists(instructionsMdPath);
-              const hasInstructionsXml = await fs.pathExists(instructionsXmlPath);
+              const hasInstructionsXml =
+                await fs.pathExists(instructionsXmlPath);
               instructionsPath = hasInstructionsMd
                 ? instructionsMdPath
                 : hasInstructionsXml
@@ -157,7 +163,7 @@ export async function findAgentsAndWorkflows(
 
               if (!instructionsPath) {
                 console.warn(
-                  `Warning: Missing instructions.md or instructions.xml for workflow ${name} at ${workflowDir}`,
+                  `Warning: Missing instructions.md or instructions.xml for workflow ${name} at ${workflowDir}`
                 );
               }
             }
@@ -183,13 +189,13 @@ export async function findAgentsAndWorkflows(
             });
           } catch (error) {
             console.warn(
-              `Warning: Failed to process workflow file ${absolutePath}: ${error.message}`,
+              `Warning: Failed to process workflow file ${absolutePath}: ${error.message}`
             );
           }
         }
       } catch (error) {
         console.warn(
-          `Warning: Failed to search for workflows in pattern ${fullPattern}: ${error.message}`,
+          `Warning: Failed to search for workflows in pattern ${fullPattern}: ${error.message}`
         );
       }
     }

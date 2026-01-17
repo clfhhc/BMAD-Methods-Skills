@@ -3,7 +3,6 @@
 import fs from 'fs-extra';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import readline from 'node:readline';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +16,12 @@ async function run() {
     await init(args);
   } else if (command === 'install') {
     await install(args);
-  } else if (command === '--help' || command === '-h' || args.includes('--help') || args.includes('-h')) {
+  } else if (
+    command === '--help' ||
+    command === '-h' ||
+    args.includes('--help') ||
+    args.includes('-h')
+  ) {
     printHelp();
   } else {
     // Proxy to convert.js logic
@@ -25,13 +29,11 @@ async function run() {
   }
 }
 
-
-
 /**
  * Install specific skills from a source directory to the project's skill directory
  */
 async function install(args) {
-  const sourceArg = args.find(a => a.startsWith('--from='))?.split('=')[1];
+  const sourceArg = args.find((a) => a.startsWith('--from='))?.split('=')[1];
   const force = args.includes('--force');
 
   if (!sourceArg) {
@@ -55,7 +57,7 @@ async function install(args) {
   // Get skills from source
   const skills = await fs.readdir(sourcePath);
   const validSkills = [];
-  
+
   for (const skill of skills) {
     if ((await fs.stat(path.join(sourcePath, skill))).isDirectory()) {
       validSkills.push(skill);
@@ -68,12 +70,12 @@ async function install(args) {
   }
 
   console.log(`\nFound ${validSkills.length} skills to install.`);
-  
+
   // Install
   for (const skillName of validSkills) {
     await installSkill(
-      skillName, 
-      path.join(sourcePath, skillName), 
+      skillName,
+      path.join(sourcePath, skillName),
       path.join(process.cwd(), toolInfo.path, skillName),
       force
     );
@@ -93,57 +95,61 @@ async function init(args) {
 
   if (isBootstrap) {
     console.log('🔄 Bootstrapping full BMAD suite...');
-    
+
     // 1. Run conversion
     const tempDir = '.temp/converted-skills-bootstrap';
     console.log(`\n--- Step 1: Fetching & Converting (${tempDir}) ---`);
     process.env.BMAD_OUTPUT_DIR = tempDir; // Pass specific output dir to convert.js
-    
+
     // Create synthetic args for convert.js
     // We filter out init-specific args to avoid confusion, but keep repo/branch overrides
-    const convertArgs = args.filter(a => 
-      !['init', '--bootstrap', '--force', '--tool'].some(x => a.includes(x))
+    const convertArgs = args.filter(
+      (a) =>
+        !['init', '--bootstrap', '--force', '--tool'].some((x) => a.includes(x))
     );
-    
+
     // Temporarily override argv for the imported module
     const originalArgv = process.argv;
-    process.argv = [process.argv[0], process.argv[1], ...convertArgs, '--output-dir', tempDir];
-    
+    process.argv = [
+      process.argv[0],
+      process.argv[1],
+      ...convertArgs,
+      '--output-dir',
+      tempDir,
+    ];
+
     try {
-      // Import runs the main function automatically if we aren't careful?
-      // Wait, convert.js runs main() at the end. We should probably refactor convert.js to export main
-      // but simpler hack: just run it as a child process if import is messy, 
-      // OR rely on dynamic import executing top-level code.
-      // Dynamic import executes top-level code ONCE. If we imported it before, it won't run again.
-      // Safe bet: spawn a clean process.
       const { spawn } = await import('node:child_process');
       const binPath = fileURLToPath(import.meta.url); // this file
-      
+
       await new Promise((resolve, reject) => {
         // Run self without command -> trigger convert logic
-        const child = spawn(process.execPath, [binPath, ...convertArgs, '--output-dir', tempDir], {
-          stdio: 'inherit'
-        });
+        const child = spawn(
+          process.execPath,
+          [binPath, ...convertArgs, '--output-dir', tempDir],
+          {
+            stdio: 'inherit',
+          }
+        );
         child.on('close', (code) => {
           if (code === 0) resolve();
           else reject(new Error(`Conversion failed with code ${code}`));
         });
       });
-
     } catch (error) {
-       console.error(`❌ Bootstrap conversion failed: ${error.message}`);
-       process.argv = originalArgv; // Restore
-       return;
+      console.error(`❌ Bootstrap conversion failed: ${error.message}`);
+      process.argv = originalArgv; // Restore
+      return;
     }
     process.argv = originalArgv; // Restore
 
     // 2. Install
     console.log(`\n--- Step 2: Installing to ${toolInfo.name} ---`);
     await install([
-      'install', 
-      `--from=${tempDir}`, 
+      'install',
+      `--from=${tempDir}`,
       `--tool=${toolInfo.name.toLowerCase()}`, // Ensure generic name match
-      '--force' // Always force in bootstrap mode? Or respect args? Let's use force for bootstrap convenience
+      '--force', // Always force in bootstrap mode? Or respect args? Let's use force for bootstrap convenience
     ]);
 
     // 3. Install bundled skills (bootstrap-bmad-skills, enhance-bmad-skills)
@@ -153,7 +159,12 @@ async function init(args) {
       const skills = await fs.readdir(skillsDir);
       for (const skill of skills) {
         if ((await fs.stat(path.join(skillsDir, skill))).isDirectory()) {
-           await installSkill(skill, path.join(skillsDir, skill), path.join(process.cwd(), toolInfo.path, skill), true);
+          await installSkill(
+            skill,
+            path.join(skillsDir, skill),
+            path.join(process.cwd(), toolInfo.path, skill),
+            true
+          );
         }
       }
     }
@@ -163,7 +174,9 @@ async function init(args) {
       await fs.remove('.temp'); // Remove generic temp if used
       // Note: we used specific temp dir, removing that
       if (tempDir.startsWith('.temp')) await fs.remove('.temp');
-    } catch (e) { /* ignore */ }
+    } catch (_e) {
+      /* ignore */
+    }
 
     console.log('\n✨ Bootstrap functionality complete!');
     return;
@@ -175,39 +188,41 @@ async function init(args) {
   // Dynamically find skills in package
   const skillsDir = path.join(pkgRoot, 'skills');
   if (!(await fs.pathExists(skillsDir))) {
-     console.error('❌ Critical Error: Package skills directory not found.');
-     return;
+    console.error('❌ Critical Error: Package skills directory not found.');
+    return;
   }
 
   const skills = await fs.readdir(skillsDir);
   const skillsToInstall = [];
-  
+
   for (const skill of skills) {
     // Only install directories as skills
     if ((await fs.stat(path.join(skillsDir, skill))).isDirectory()) {
-        skillsToInstall.push(skill);
+      skillsToInstall.push(skill);
     }
   }
 
   if (skillsToInstall.length === 0) {
-      console.warn('⚠️  No skills found in package to install.');
-      return;
+    console.warn('⚠️  No skills found in package to install.');
+    return;
   }
-  
+
   const force = args.includes('--force');
 
   try {
     for (const skillName of skillsToInstall) {
       const sourceDir = path.join(skillsDir, skillName);
       const targetDir = path.resolve(process.cwd(), toolInfo.path, skillName);
-      
+
       await installSkill(skillName, sourceDir, targetDir, force);
     }
-    
+
     console.log(`\n✅ Successfully initialized in: ${toolInfo.path}/`);
     console.log('\nNext steps:');
     console.log(`1. Open your AI chat (${toolInfo.name}).`);
-    console.log('2. Run "npx @clfhhc/bmad-methods-skills init --bootstrap" to auto-install everything.');
+    console.log(
+      '2. Run "npx @clfhhc/bmad-methods-skills init --bootstrap" to auto-install everything.'
+    );
     console.log('   OR Type "BS" in chat for the guided workflow.');
   } catch (error) {
     console.error(`\n❌ Installation failed: ${error.message}`);
@@ -228,7 +243,7 @@ async function installSkill(name, source, target, force) {
   } else {
     console.log(`  + Installing ${name}...`);
   }
-  
+
   await fs.ensureDir(path.dirname(target));
   await fs.copy(source, target, { overwrite: true });
 }
@@ -237,29 +252,45 @@ async function installSkill(name, source, target, force) {
  * Helper to detect AI tool
  */
 async function detectTool(args) {
-  const toolArg = args.find(a => a.startsWith('--tool='))?.split('=')[1];
+  const toolArg = args.find((a) => a.startsWith('--tool='))?.split('=')[1];
   const force = args.includes('--force');
 
   const tools = [
-    { name: 'Antigravity', path: '.agent/skills', active: await fs.pathExists('.agent') },
-    { name: 'Cursor', path: '.cursor/skills', active: await fs.pathExists('.cursor') },
-    { name: 'Claude Code (Local)', path: '.claude/skills', active: await fs.pathExists('.claude') },
+    {
+      name: 'Antigravity',
+      path: '.agent/skills',
+      active: await fs.pathExists('.agent'),
+    },
+    {
+      name: 'Cursor',
+      path: '.cursor/skills',
+      active: await fs.pathExists('.cursor'),
+    },
+    {
+      name: 'Claude Code (Local)',
+      path: '.claude/skills',
+      active: await fs.pathExists('.claude'),
+    },
   ];
 
-  let selectedTool = tools.find(t => t.active);
-  
+  let selectedTool = tools.find((t) => t.active);
+
   if (toolArg) {
-    selectedTool = tools.find(t => t.name.toLowerCase().includes(toolArg.toLowerCase()));
+    selectedTool = tools.find((t) =>
+      t.name.toLowerCase().includes(toolArg.toLowerCase())
+    );
   }
 
   if (!selectedTool) {
     if (force) {
-       // Default to antigravity if forced and not found
-       return tools[0];
+      // Default to antigravity if forced and not found
+      return tools[0];
     }
-    
+
     console.log('❌ No AI tool directory detected (.agent, .cursor, .claude).');
-    console.log('   Use --tool=<name> to force installation or ensure you are in the project root.');
+    console.log(
+      '   Use --tool=<name> to force installation or ensure you are in the project root.'
+    );
     console.log('   Available tools: antigravity, cursor, claude');
     return null;
   }
@@ -295,7 +326,7 @@ Options (for conversion):
   `);
 }
 
-run().catch(err => {
+run().catch((err) => {
   console.error(err);
   process.exit(1);
 });

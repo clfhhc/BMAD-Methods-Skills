@@ -30,7 +30,7 @@ function parseArgs() {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     if (arg === '--output-dir' && i + 1 < args.length) {
       options.outputDir = args[++i];
     } else if (arg === '--repo' && i + 1 < args.length) {
@@ -168,7 +168,8 @@ try {
     config.enhancements.optional.addBestPractices = cliOptions.addBestPractices;
   }
   if (cliOptions.addTroubleshooting !== null) {
-    config.enhancements.optional.addTroubleshooting = cliOptions.addTroubleshooting;
+    config.enhancements.optional.addTroubleshooting =
+      cliOptions.addTroubleshooting;
   }
   if (cliOptions.addRelatedSkills !== null) {
     config.enhancements.optional.addRelatedSkills = cliOptions.addRelatedSkills;
@@ -200,7 +201,7 @@ async function main() {
     const bmadRoot = await fetchBmadRepo(
       config.bmadRepo,
       config.bmadBranch,
-      path.resolve(process.cwd(), config.tempDir),
+      path.resolve(process.cwd(), config.tempDir)
     );
     console.log(`✓ Repository ready at: ${bmadRoot}\n`);
 
@@ -209,14 +210,14 @@ async function main() {
     const { agents, workflows } = await findAgentsAndWorkflows(
       bmadRoot,
       config.agentPaths,
-      config.workflowPaths,
+      config.workflowPaths
     );
 
     stats.agents.total = agents.length;
     stats.workflows.total = workflows.length;
 
     console.log(
-      `✓ Found ${agents.length} agents and ${workflows.length} workflows\n`,
+      `✓ Found ${agents.length} agents and ${workflows.length} workflows\n`
     );
 
     // Step 3: Prepare output directory
@@ -238,12 +239,7 @@ async function main() {
             ...agentOptions,
             currentModule: agent.module,
           });
-          await writeSkill(
-            outputDir,
-            agent.module,
-            agent.name,
-            skillContent,
-          );
+          await writeSkill(outputDir, agent.module, agent.name, skillContent);
           stats.agents.converted++;
           console.log(`  ✓ ${agent.module}/${agent.name}`);
         } catch (error) {
@@ -253,9 +249,7 @@ async function main() {
             path: agent.path,
             error: error.message,
           });
-          console.error(
-            `  ✗ ${agent.module}/${agent.name}: ${error.message}`,
-          );
+          console.error(`  ✗ ${agent.module}/${agent.name}: ${error.message}`);
         }
       }
       console.log();
@@ -275,14 +269,14 @@ async function main() {
             {
               ...workflowOptions,
               isMarkdown: workflow.isMarkdown || false,
-            },
+            }
           );
           await writeSkill(
             outputDir,
             workflow.module,
             workflow.name,
             skillContent,
-            { workflowDir: workflow.workflowDir },
+            { workflowDir: workflow.workflowDir }
           );
           stats.workflows.converted++;
           console.log(`  ✓ ${workflow.module}/${workflow.name}`);
@@ -294,7 +288,7 @@ async function main() {
             error: error.message,
           });
           console.error(
-            `  ✗ ${workflow.module}/${workflow.name}: ${error.message}`,
+            `  ✗ ${workflow.module}/${workflow.name}: ${error.message}`
           );
         }
       }
@@ -329,8 +323,7 @@ async function printSummary() {
   console.log(`  Errors: ${stats.workflows.errors}`);
   console.log();
 
-  const totalConverted =
-    stats.agents.converted + stats.workflows.converted;
+  const totalConverted = stats.agents.converted + stats.workflows.converted;
   const totalErrors = stats.agents.errors + stats.workflows.errors;
 
   if (totalErrors > 0) {
@@ -344,19 +337,23 @@ async function printSummary() {
 
   console.log(`✅ Successfully converted ${totalConverted} skills`);
   console.log(
-    `📁 Output directory: ${path.resolve(process.cwd(), config.outputDir)}`,
+    `📁 Output directory: ${path.resolve(process.cwd(), config.outputDir)}`
   );
-  
+
   // Show configuration info
   if (config.outputDir !== './skills') {
     console.log('\n💡 Note: Output directory is not the default (./skills)');
     console.log('   This directory is not version controlled.');
     console.log('   To use default settings, run without --output-dir flag.');
   }
-  
+
   if (config.enhancements.identityCharLimit !== null) {
-    console.log(`\n💡 Note: Identity character limit is set to ${config.enhancements.identityCharLimit}`);
-    console.log('   Default behavior (no limit) is recommended for better content.');
+    console.log(
+      `\n💡 Note: Identity character limit is set to ${config.enhancements.identityCharLimit}`
+    );
+    console.log(
+      '   Default behavior (no limit) is recommended for better content.'
+    );
   }
 
   // Print per-module breakdown

@@ -9,24 +9,20 @@ import path from 'node:path';
  * @param {string} tempDir - Temporary directory to clone into
  * @returns {Promise<string>} Path to the cloned repository root
  */
-export async function fetchBmadRepo(
-  repoUrl,
-  branch,
-  tempDir,
-) {
+export async function fetchBmadRepo(repoUrl, branch, tempDir) {
   if (!repoUrl || !branch || !tempDir) {
     throw new Error(
-      'Missing required parameters: repoUrl, branch, and tempDir are required',
+      'Missing required parameters: repoUrl, branch, and tempDir are required'
     );
   }
-  
+
   const git = simpleGit();
-  
+
   try {
     // Check if directory exists and is a git repo
     const gitPath = path.join(tempDir, '.git');
     const isRepo = await fs.pathExists(gitPath);
-    
+
     if (isRepo) {
       console.log(`Updating existing repository at ${tempDir}...`);
       const repoGit = simpleGit(tempDir);
@@ -37,15 +33,10 @@ export async function fetchBmadRepo(
         console.log(`✓ Repository updated to latest ${branch}`);
       } catch (_fetchError) {
         console.warn(
-          'Warning: Failed to update repository, attempting fresh clone...',
+          'Warning: Failed to update repository, attempting fresh clone...'
         );
         await fs.remove(tempDir);
-        await git.clone(repoUrl, tempDir, [
-          '--depth',
-          '1',
-          '--branch',
-          branch,
-        ]);
+        await git.clone(repoUrl, tempDir, ['--depth', '1', '--branch', branch]);
         console.log('✓ Repository cloned successfully');
       }
     } else {
@@ -54,15 +45,8 @@ export async function fetchBmadRepo(
         await fs.remove(tempDir);
       }
 
-      console.log(
-        `Cloning ${repoUrl} (branch: ${branch}) to ${tempDir}...`,
-      );
-      await git.clone(repoUrl, tempDir, [
-        '--depth',
-        '1',
-        '--branch',
-        branch,
-      ]);
+      console.log(`Cloning ${repoUrl} (branch: ${branch}) to ${tempDir}...`);
+      await git.clone(repoUrl, tempDir, ['--depth', '1', '--branch', branch]);
 
       // Verify clone was successful
       if (!(await fs.pathExists(path.join(tempDir, '.git')))) {
@@ -71,7 +55,7 @@ export async function fetchBmadRepo(
 
       console.log('✓ Repository cloned successfully');
     }
-    
+
     return tempDir;
   } catch (error) {
     if (
@@ -79,7 +63,7 @@ export async function fetchBmadRepo(
       error.message.includes('does not exist')
     ) {
       throw new Error(
-        `Branch '${branch}' not found in repository. Please check the branch name.`,
+        `Branch '${branch}' not found in repository. Please check the branch name.`
       );
     }
     if (
@@ -87,11 +71,9 @@ export async function fetchBmadRepo(
       error.message.includes('EACCES')
     ) {
       throw new Error(
-        `Permission denied accessing ${tempDir}. Check directory permissions.`,
+        `Permission denied accessing ${tempDir}. Check directory permissions.`
       );
     }
-    throw new Error(
-      `Failed to fetch BMAD repository: ${error.message}`,
-    );
+    throw new Error(`Failed to fetch BMAD repository: ${error.message}`);
   }
 }

@@ -14,8 +14,19 @@ export async function migrateResources(bmadRoot, outputDir) {
       // Tech Writer: documentation-standards.md
       // From: src/modules/bmm/data/documentation-standards.md
       // To: bmm/tech-writer/data/documentation-standards.md
-      src: path.join('src', 'modules', 'bmm', 'data', 'documentation-standards.md'),
-      dest: path.join('bmm', 'tech-writer', 'data', 'documentation-standards.md'),
+      src: path.join(
+        'src',
+        'modules',
+        'bmm',
+        'data',
+        'documentation-standards.md'
+      ),
+      dest: path.join(
+        'bmm',
+        'tech-writer',
+        'data',
+        'documentation-standards.md'
+      ),
       name: 'Documentation Standards',
     },
     {
@@ -34,7 +45,7 @@ export async function migrateResources(bmadRoot, outputDir) {
       dest: path.join('bmm', 'tea', 'knowledge'),
       name: 'TEA Knowledge Base',
       isDirectory: true,
-    }
+    },
   ];
 
   let migratedCount = 0;
@@ -50,16 +61,24 @@ export async function migrateResources(bmadRoot, outputDir) {
         console.log(`  ✓ Migrated ${migration.name}`);
         migratedCount++;
       } else {
-        console.warn(`  ⚠️  Source not found for ${migration.name}: ${migration.src}`);
+        console.warn(
+          `  ⚠️  Source not found for ${migration.name}: ${migration.src}`
+        );
       }
     } catch (error) {
-      console.error(`  ✗ Failed to migrate ${migration.name}: ${error.message}`);
+      console.error(
+        `  ✗ Failed to migrate ${migration.name}: ${error.message}`
+      );
     }
   }
 
   console.log(`  ✓ Migrated ${migratedCount} resources\n`);
   if (migratedCount < migrations.length) {
-    console.warn('  ⚠️  Some resources were not found. This may happen if the BMAD repository structure has changed.');
-    console.warn('      Please check if a newer version of @clfhhc/bmad-methods-skills is available.');
+    console.warn(
+      '  ⚠️  Some resources were not found. This may happen if the BMAD repository structure has changed.'
+    );
+    console.warn(
+      '      Please check if a newer version of @clfhhc/bmad-methods-skills is available.'
+    );
   }
 }

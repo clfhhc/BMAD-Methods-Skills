@@ -17,11 +17,11 @@ export async function writeSkill(
   module,
   skillName,
   skillContent,
-  options = {},
+  options = {}
 ) {
   if (!outputDir || !module || !skillName || !skillContent) {
     throw new Error(
-      'Missing required parameters: outputDir, module, skillName, and skillContent are required',
+      'Missing required parameters: outputDir, module, skillName, and skillContent are required'
     );
   }
 
@@ -36,7 +36,7 @@ export async function writeSkill(
     .replace(/-+/g, '-');
   if (sanitizedName !== skillName) {
     console.warn(
-      `Warning: Skill name sanitized from "${skillName}" to "${sanitizedName}"`,
+      `Warning: Skill name sanitized from "${skillName}" to "${sanitizedName}"`
     );
   }
 
@@ -59,11 +59,11 @@ export async function writeSkill(
         await copyDirectoryWithPathRewrite(
           options.workflowDir,
           skillDir,
-          module,
+          module
         );
       } catch (copyError) {
         console.warn(
-          `Warning: Failed to copy related files for ${skillName}: ${copyError.message}`,
+          `Warning: Failed to copy related files for ${skillName}: ${copyError.message}`
         );
       }
     }
@@ -72,7 +72,7 @@ export async function writeSkill(
   } catch (error) {
     if (error.code === 'EACCES' || error.code === 'EPERM') {
       throw new Error(
-        `Permission denied writing to ${skillDir}. Check directory permissions.`,
+        `Permission denied writing to ${skillDir}. Check directory permissions.`
       );
     }
     throw new Error(`Failed to write skill file: ${error.message}`);
@@ -84,14 +84,14 @@ export async function writeSkill(
  */
 async function copyDirectoryWithPathRewrite(srcDir, destDir, module) {
   const entries = await fs.readdir(srcDir, { withFileTypes: true });
-  
+
   for (const entry of entries) {
     // Skip workflow.* files (they become SKILL.md)
     if (entry.name.startsWith('workflow.')) continue;
-    
+
     const srcPath = path.join(srcDir, entry.name);
     const destPath = path.join(destDir, entry.name);
-    
+
     if (entry.isDirectory()) {
       await fs.ensureDir(destPath);
       await copyDirectoryWithPathRewrite(srcPath, destPath, module);

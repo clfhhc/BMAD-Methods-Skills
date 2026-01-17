@@ -7,13 +7,14 @@ Automatically convert BMAD-METHOD agents and workflows to Claude Skills format.
 To install the BMAD bootstrap skill into a new project, you can use `npx`:
 
 ```bash
-npx @clfhhc/bmad-methods-skills init
+npx @clfhhc/bmad-methods-skills init --bootstrap
 ```
 
 This will:
 1. Detect your AI tool (.agent, .cursor, or .claude)
-2. Install the `bootstrap-bmad-skills` and `enhance-bmad-skills` into your project
-3. Enable the `BS` command to fetch and install all other BMAD skills via `npx`
+2. Automatically fetch, convert, and install the complete BMAD method suite
+3. Install `bootstrap-bmad-skills` and `enhance-bmad-skills` for future maintenance
+4. Enable the `BS` command as a manual backup workflow
 
 ## Documentation
 
