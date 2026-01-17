@@ -1,6 +1,6 @@
 {
   "name": "@clfhhc/bmad-methods-skills",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Convert BMAD-METHOD agents and workflows to Claude Skills format",
   "type": "module",
   "packageManager": "pnpm@10.28.0",

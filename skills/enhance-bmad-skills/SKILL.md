@@ -96,21 +96,21 @@ Choose [A/M/D/K]:
 | `{project-root}/_bmad/bmm/testarch/knowledge/` | `../../tea/knowledge/` (if migrated) |
 | `{project-root}/_bmad/{module}/workflows/...` | `../../{workflow}/SKILL.md` |
 
-### Skills Requiring Review
+### Common Adaptation Scenarios
 
-These skills have known path references needing adaptation:
+You may encounter these common patterns that require specific handling:
 
-1. **`skills/bmm/tech-writer/SKILL.md`** (line 25)
-   - References: `{project-root}/_bmad/bmm/data/documentation-standards.md`
-   - Suggested action: Migrate file to `skills/bmm/tech-writer/data/`
+1. **Data File References**
+   - Pattern: References to centralized data files (e.g., `_bmad/bmm/data/...`).
+   - Action: **Migrate** these files into the skill's own `data/` directory to make it self-contained.
 
-2. **`skills/bmm/tea/SKILL.md`** (lines 26-27)
-   - References: `{project-root}/_bmad/bmm/testarch/knowledge/`
-   - Suggested action: Create knowledge directory in skill, migrate fragments
+2. **Knowledge Bases**
+   - Pattern: References to knowledge directories (e.g., `_bmad/bmm/testarch/knowledge/`).
+   - Action: **Migrate** the directory into the skill and update the path to be relative.
 
-3. **`skills/bmb/agent/data/reference/module-examples/trend-analyst.agent.yaml`** (line 48)
-   - References: `{project-root}/_bmad/cis/tasks/competitor-trend-watch.xml`
-   - Suggested action: Document as example (CIS module reference is teaching content)
+3. **Cross-Module Examples**
+   - Pattern: References to other modules in examples (e.g., `_bmad/cis/tasks/...` in a different module).
+   - Action: **Keep In Place** (Document) or **Adapt** to a relative path if the target skill is also installed.
 
 ---
 
