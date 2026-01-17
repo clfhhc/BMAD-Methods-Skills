@@ -146,6 +146,18 @@ async function init(args) {
       '--force' // Always force in bootstrap mode? Or respect args? Let's use force for bootstrap convenience
     ]);
 
+    // 3. Install bundled skills (bootstrap-bmad-skills, enhance-bmad-skills)
+    // We reuse the logic from the standard init, but silence it slightly or just run it
+    const skillsDir = path.join(pkgRoot, 'skills');
+    if (await fs.pathExists(skillsDir)) {
+      const skills = await fs.readdir(skillsDir);
+      for (const skill of skills) {
+        if ((await fs.stat(path.join(skillsDir, skill))).isDirectory()) {
+           await installSkill(skill, path.join(skillsDir, skill), path.join(process.cwd(), toolInfo.path, skill), true);
+        }
+      }
+    }
+
     // Cleanup
     try {
       await fs.remove('.temp'); // Remove generic temp if used
