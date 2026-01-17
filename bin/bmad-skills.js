@@ -79,7 +79,7 @@ async function install(args) {
     );
   }
 
-  console.log(`\n✅ Installation complete.`);
+  console.log('\n✅ Installation complete.');
 }
 
 async function init(args) {
@@ -88,6 +88,76 @@ async function init(args) {
   const toolInfo = await detectTool(args);
   if (!toolInfo) return;
 
+  // Check for bootstrap flag
+  const isBootstrap = args.includes('--bootstrap');
+
+  if (isBootstrap) {
+    console.log('🔄 Bootstrapping full BMAD suite...');
+    
+    // 1. Run conversion
+    const tempDir = '.temp/converted-skills-bootstrap';
+    console.log(`\n--- Step 1: Fetching & Converting (${tempDir}) ---`);
+    process.env.BMAD_OUTPUT_DIR = tempDir; // Pass specific output dir to convert.js
+    
+    // Create synthetic args for convert.js
+    // We filter out init-specific args to avoid confusion, but keep repo/branch overrides
+    const convertArgs = args.filter(a => 
+      !['init', '--bootstrap', '--force', '--tool'].some(x => a.includes(x))
+    );
+    
+    // Temporarily override argv for the imported module
+    const originalArgv = process.argv;
+    process.argv = [process.argv[0], process.argv[1], ...convertArgs, '--output-dir', tempDir];
+    
+    try {
+      // Import runs the main function automatically if we aren't careful?
+      // Wait, convert.js runs main() at the end. We should probably refactor convert.js to export main
+      // but simpler hack: just run it as a child process if import is messy, 
+      // OR rely on dynamic import executing top-level code.
+      // Dynamic import executes top-level code ONCE. If we imported it before, it won't run again.
+      // Safe bet: spawn a clean process.
+      const { spawn } = await import('node:child_process');
+      const binPath = fileURLToPath(import.meta.url); // this file
+      
+      await new Promise((resolve, reject) => {
+        // Run self without command -> trigger convert logic
+        const child = spawn(process.execPath, [binPath, ...convertArgs, '--output-dir', tempDir], {
+          stdio: 'inherit'
+        });
+        child.on('close', (code) => {
+          if (code === 0) resolve();
+          else reject(new Error(`Conversion failed with code ${code}`));
+        });
+      });
+
+    } catch (error) {
+       console.error(`❌ Bootstrap conversion failed: ${error.message}`);
+       process.argv = originalArgv; // Restore
+       return;
+    }
+    process.argv = originalArgv; // Restore
+
+    // 2. Install
+    console.log(`\n--- Step 2: Installing to ${toolInfo.name} ---`);
+    await install([
+      'install', 
+      `--from=${tempDir}`, 
+      `--tool=${toolInfo.name.toLowerCase()}`, // Ensure generic name match
+      '--force' // Always force in bootstrap mode? Or respect args? Let's use force for bootstrap convenience
+    ]);
+
+    // Cleanup
+    try {
+      await fs.remove('.temp'); // Remove generic temp if used
+      // Note: we used specific temp dir, removing that
+      if (tempDir.startsWith('.temp')) await fs.remove('.temp');
+    } catch (e) { /* ignore */ }
+
+    console.log('\n✨ Bootstrap functionality complete!');
+    return;
+  }
+
+  // STANDARD INIT (Bootstrap skills only)
   console.log(`📦 Installing Bootstrap Skills for ${toolInfo.name}...`);
 
   // Dynamically find skills in package
@@ -125,7 +195,8 @@ async function init(args) {
     console.log(`\n✅ Successfully initialized in: ${toolInfo.path}/`);
     console.log('\nNext steps:');
     console.log(`1. Open your AI chat (${toolInfo.name}).`);
-    console.log('2. Type "BS" or "bootstrap-skills" to fetch and install the full BMAD method suite.');
+    console.log('2. Run "npx @clfhhc/bmad-methods-skills init --bootstrap" to auto-install everything.');
+    console.log('   OR Type "BS" in chat for the guided workflow.');
   } catch (error) {
     console.error(`\n❌ Installation failed: ${error.message}`);
   }
@@ -138,7 +209,7 @@ async function installSkill(name, source, target, force) {
   if (await fs.pathExists(target)) {
     if (!force) {
       console.warn(`  ⚠ Skill '${name}' already exists. Skipping.`);
-    console.warn('    (Use --force to overwrite)');
+      console.warn('    (Use --force to overwrite)');
       return;
     }
     console.log(`  ↻ Updating ${name}...`);
@@ -196,6 +267,7 @@ Commands:
 Options (for init/install):
   --tool=<name>    Specify tool (antigravity, cursor, claude)
   --force          Overwrite existing skills / Force installation
+  --bootstrap      Automatically fetch, convert, and install full suite
   --from=<path>    (install only) Source directory containing skills
 
 Options (for conversion):

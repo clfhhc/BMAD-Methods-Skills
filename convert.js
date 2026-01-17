@@ -6,6 +6,7 @@ import { findAgentsAndWorkflows } from './src/utils/file-finder.js';
 import { convertAgentToSkill } from './src/converters/agent-converter.js';
 import { convertWorkflowToSkill } from './src/converters/workflow-converter.js';
 import { writeSkill } from './src/utils/skill-writer.js';
+import { migrateResources } from './src/utils/resource-migrator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -300,7 +301,10 @@ async function main() {
       console.log();
     }
 
-    // Step 6: Generate summary
+    // Step 6: Migrate auxiliary resources
+    await migrateResources(bmadRoot, outputDir);
+
+    // Step 7: Generate summary
     await printSummary();
   } catch (error) {
     console.error(`\n❌ Fatal error: ${error.message}`);

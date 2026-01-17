@@ -148,6 +148,17 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
     `${relativePrefix}/bmm/tea/tea-index.csv`
   );
 
+  // Rewrite documentation-standards.md references (migrated to tech-writer/data)
+  // {project-root}/_bmad/bmm/data/documentation-standards.md -> ../../bmm/tech-writer/data/documentation-standards.md
+  // But wait, if we are IN tech-writer, it should be ./data/documentation-standards.md
+  // The relativePrefix logic handles ../.. but we might prefer a direct replacement here 
+  // since it's a specific file. 
+  // Let's rely on the generic ../..bmm/tech-writer/data approach which works from anywhere.
+  result = result.replace(
+    /\{project-root\}\/_bmad\/bmm\/data\/documentation-standards\.md/g,
+    `${relativePrefix}/bmm/tech-writer/data/documentation-standards.md`
+  );
+
   // Rewrite _memory sidecar references (these are runtime, mark as placeholder)
   result = result.replace(
     /\{project-root\}\/_bmad\/_memory\/([^/\s'"]+)/g,
