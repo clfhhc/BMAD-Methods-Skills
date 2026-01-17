@@ -32,14 +32,13 @@ Ask whether to install the skills as global or project-specific.
 ### Step 3: Fetch & Convert
 Inform the user that you will now fetch the `bmad-methods` main branch and convert it in a temporary folder.
 
-1.  **Clean Temporary Folder**: Run `npm run clean`
-2.  **Convert**: Run `npm run convert -- --output-dir .temp/converted-skills`
+1.  **Convert**: Run `npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills`
     - This fetches the `main` branch of BMAD-METHOD and converts all agents/workflows.
 
 ### Step 4: Apply Enhancements
 Apply Phase 2 path adaptations and Phase 3 meta-docs.
 
-1.  **Scan Paths**: Use the `enhance-skill` (`SP`) command to scan the converted skills for `{project-root}` references.
+1.  **Scan Paths**: Use the `enhance-bmad-skills` (`SP`) command to scan the converted skills for `{project-root}` references.
 2.  **Adapt Paths**: Propose path adaptations (relative vs absolute) based on the target installation type.
     - If **Global**: Prefer absolute paths or relative to a fixed global root.
     - If **Project-Specific**: Prefer relative paths within the project.

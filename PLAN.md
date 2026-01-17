@@ -472,7 +472,7 @@ Generate from BMAD structure:
 
 ### Phase 2: AI-Enhanced Optional Enhancements
 
-1. **Create `enhance-skill` skill** (SKILL.md file)
+1. **Create `enhance-bmad-skills` skill** (SKILL.md file)
    - Instructions for AI models to enhance existing skills
    - Takes a SKILL.md file and adds context-aware enhancements
    - Maintains consistency with BMAD principles
@@ -513,7 +513,7 @@ Generate from BMAD structure:
 
 ## Remaining Tasks
 
-- [ ] Phase 2: Create `enhance-skill` skill for AI-driven enhancements
+- ✅ Create `enhance-bmad-skills` skill for AI-driven enhancements
 - [ ] Phase 2: Implement context-aware example generation (if script-based)
 - [ ] Phase 2: Implement advanced troubleshooting (if script-based)
 - [ ] Phase 3: Generate CLAUDE.md from BMAD structure analysis

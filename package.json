@@ -1,13 +1,23 @@
 {
-  "name": "bmad-methods-skills",
-  "version": "1.0.0",
+  "name": "@clfhhc/bmad-methods-skills",
+  "version": "0.1.0",
   "description": "Convert BMAD-METHOD agents and workflows to Claude Skills format",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "main": "convert.js",
   "bin": {
-    "bmad-skills": "./src/cli/init.js"
+    "bmad-methods-skills": "bin/bmad-skills.js"
   },
+  "files": [
+    "bin",
+    "skills",
+    "src",
+    "docs",
+    "convert.js",
+    "config.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "convert": "node convert.js",
     "clean": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./.temp'); console.log('Cleaned temp directory'); } catch(e) { console.error('Error:', e.message); } })\"",

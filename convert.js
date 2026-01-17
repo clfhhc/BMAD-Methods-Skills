@@ -182,7 +182,7 @@ async function main() {
     const bmadRoot = await fetchBmadRepo(
       config.bmadRepo,
       config.bmadBranch,
-      path.resolve(__dirname, config.tempDir),
+      path.resolve(process.cwd(), config.tempDir),
     );
     console.log(`✓ Repository ready at: ${bmadRoot}\n`);
 
@@ -202,7 +202,7 @@ async function main() {
     );
 
     // Step 3: Prepare output directory
-    const outputDir = path.resolve(__dirname, config.outputDir);
+    const outputDir = path.resolve(process.cwd(), config.outputDir);
     await fs.ensureDir(outputDir);
     console.log(`📁 Output directory: ${outputDir}\n`);
 
@@ -323,7 +323,7 @@ async function printSummary() {
 
   console.log(`✅ Successfully converted ${totalConverted} skills`);
   console.log(
-    `📁 Output directory: ${path.resolve(__dirname, config.outputDir)}`,
+    `📁 Output directory: ${path.resolve(process.cwd(), config.outputDir)}`,
   );
   
   // Show configuration info
@@ -343,7 +343,7 @@ async function printSummary() {
     console.log('\n📦 Per-module breakdown:');
 
     // Count by module from output structure
-    const outputDir = path.resolve(__dirname, config.outputDir);
+    const outputDir = path.resolve(process.cwd(), config.outputDir);
     if (await fs.pathExists(outputDir)) {
       const modules = await fs.readdir(outputDir);
       for (const module of modules) {
