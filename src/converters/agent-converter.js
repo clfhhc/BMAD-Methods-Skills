@@ -249,7 +249,7 @@ ${menu
     // Look for workflow references in format [WS], [BP], etc.
     const workflowCodes = desc.match(/\[(\w+)\]/g) || [];
     for (const code of workflowCodes) {
-      const codeName = code.replace(/[\[\]]/g, '').toLowerCase();
+      const codeName = code.replace(/[[\]]/g, '').toLowerCase();
       // Try to match workflow names
       const matchingWorkflow = allWorkflows.find((w) => {
         const wName = w.name.toLowerCase().replace(/-/g, '');
