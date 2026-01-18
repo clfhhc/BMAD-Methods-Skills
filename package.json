@@ -1,8 +1,12 @@
 {
   "name": "@clfhhc/bmad-methods-skills",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "description": "Convert BMAD-METHOD agents and workflows to Claude Skills format",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clfhhc/BMAD-Methods-Skills.git"
+  },
   "packageManager": "pnpm@10.28.0",
   "main": "convert.js",
   "bin": {
