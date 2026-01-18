@@ -1,5 +1,5 @@
-import fs from 'fs-extra';
 import path from 'node:path';
+import fs from 'fs-extra';
 
 /**
  * Migrates specific data and knowledge resources from BMAD repo to skills output

@@ -1,6 +1,6 @@
-import simpleGit from 'simple-git';
-import fs from 'fs-extra';
 import path from 'node:path';
+import fs from 'fs-extra';
+import simpleGit from 'simple-git';
 
 /**
  * Fetches or clones the BMAD-METHOD repository
