@@ -1,3 +1,11 @@
+## [0.0.5](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.0.4...v0.0.5) (2026-01-18)
+
+
+### Bug Fixes
+
+* package version ([6120d81](https://github.com/clfhhc/BMAD-Methods-Skills/commit/6120d8107d6a676b0cab7c640664984ea8921cd8))
+* upgrade biome ([#3](https://github.com/clfhhc/BMAD-Methods-Skills/issues/3)) ([df08b45](https://github.com/clfhhc/BMAD-Methods-Skills/commit/df08b453b74790453d123005464c0d027135a7ac))
+
 ## [1.0.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v1.0.0...v1.0.1) (2026-01-18)
 
 
