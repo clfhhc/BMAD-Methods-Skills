@@ -19,23 +19,37 @@ jobs:
       pull-requests: write # to be able to comment on released pull requests
       id-token: write # to enable use of OIDC for npm provenance
     steps:
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.CLFHHC_CONTENT_WRITE_APP_ID }}
+          private-key: ${{ secrets.CLFHHC_CONTENT_WRITE_APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm 
+        id: setup-pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: "lts/*"
+          package_json_file: package.json
 
-      - name: Install Dependencies
-        run: npm install -g pnpm && pnpm install --frozen-lockfile
+      - name: Setup NodeJs
+        id: setup-node
+        uses: actions/setup-node@v4 # Installs Node >= v20.9 and < v20.10.0 on Runner
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Verify
-        run: pnpm check && pnpm lint
+        run: pnpm check
 
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: pnpm release

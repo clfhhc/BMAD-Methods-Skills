@@ -22,9 +22,10 @@
     "convert": "node convert.js",
     "clean": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./.temp'); console.log('Cleaned temp directory'); } catch(e) { console.error('Error:', e.message); } })\"",
     "clean:all": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./skills'); fs.removeSync('./.temp'); console.log('Cleaned skills and temp directories'); } catch(e) { console.error('Error:', e.message); } })\"",
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "check": "biome check --write .",
+    "lint:fix": "biome lint --write .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "release": "semantic-release"
   },
   "publishConfig": {
