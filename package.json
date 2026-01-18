@@ -1,6 +1,6 @@
 {
   "name": "@clfhhc/bmad-methods-skills",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "Convert BMAD-METHOD agents and workflows to Claude Skills format",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
@@ -32,7 +32,12 @@
     "access": "public",
     "provenance": true
   },
-  "keywords": ["bmad", "claude", "skills", "converter"],
+  "keywords": [
+    "bmad",
+    "claude",
+    "skills",
+    "converter"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

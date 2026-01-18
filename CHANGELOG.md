@@ -1,0 +1,9 @@
+# 1.0.0 (2026-01-18)
+
+
+### Bug Fixes
+
+* lint and format ([b0e4a5e](https://github.com/clfhhc/BMAD-Methods-Skills/commit/b0e4a5e133a9c743fe240c1b8060eaa4b80d03cb))
+* pnpm install ([ccf2e6e](https://github.com/clfhhc/BMAD-Methods-Skills/commit/ccf2e6e1d6fe2ef1b9eb84542e8cc953db178ced))
+* release push ([#2](https://github.com/clfhhc/BMAD-Methods-Skills/issues/2)) ([8011a86](https://github.com/clfhhc/BMAD-Methods-Skills/commit/8011a86f170670f600d8dce57153ca0ed093ef45))
+* update release environment ([b7d5003](https://github.com/clfhhc/BMAD-Methods-Skills/commit/b7d5003fc3e404041c1346a3058ac8adf8798073))
