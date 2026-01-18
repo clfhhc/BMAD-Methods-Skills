@@ -93,6 +93,25 @@ async function copyDirectoryWithPathRewrite(srcDir, destDir, module) {
     const destPath = path.join(destDir, entry.name);
 
     if (entry.isDirectory()) {
+      // Check if this directory is a nested workflow
+      // We don't want to copy nested workflows as auxiliary files
+      // They will be converted as separate skills
+      try {
+        const subFiles = await fs.readdir(srcPath);
+        const isNestedWorkflow = subFiles.some(
+          (f) =>
+            f === 'workflow.yaml' ||
+            f === 'workflow.md' ||
+            f === 'workflow.xml'
+        );
+
+        if (isNestedWorkflow) {
+          continue;
+        }
+      } catch (_e) {
+        // Ignore errors reading subdir
+      }
+
       await fs.ensureDir(destPath);
       await copyDirectoryWithPathRewrite(srcPath, destPath, module);
     } else if (shouldRewritePaths(entry.name)) {

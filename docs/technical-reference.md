@@ -4,22 +4,27 @@
 
 The converter generates skills organized by module in the `skills/` directory at the project root:
 
-```
 skills/
 ├── bmm/
 │   ├── analyst/
 │   │   └── SKILL.md
 │   ├── pm/
 │   │   └── SKILL.md
+│   ├── prd/
+│   │   └── SKILL.md
+│   ├── create-ux-design/
+│   │   └── SKILL.md
 │   └── ...
 ├── bmb/
-│   └── builder/
-│       └── SKILL.md
-├── cis/
-│   └── creative-intelligence/
-│       └── SKILL.md
-└── core/
-    └── ...
+│   ├── module/
+│   │   └── SKILL.md
+│   ├── workflow/
+│   │   └── SKILL.md
+│   └── ...
+├── core/
+│   ├── advanced-elicitation/
+│   │   └── SKILL.md
+│   └── ...
 ```
 
 Each skill folder contains:
@@ -47,13 +52,13 @@ Workflows (`workflow.yaml` + `instructions.md`) are converted with:
 - **Description**: From workflow.yaml
 - **Overview**: Workflow description
 - **When to Use**: Based on standalone flag and description
-- **Instructions**: Parsed `instructions.md` with XML tags converted to markdown
+- **Instructions**: Linked `instructions.md` (or `.xml`) as an auxiliary file (not embedded)
 - **Inputs/Outputs**: From workflow.yaml
 - **Related Files**: References to template.md and checklist.md if present
 
 ### XML Tag Parsing
 
-The converter automatically converts BMAD XML-style tags in instructions:
+For legacy or XML-only workflows (where instructions are embedded), the converter automatically converts BMAD XML-style tags to Markdown. Note that standard workflows link to their instructions file instead.
 
 - `<step n="1" goal="...">` → `## Step 1: ...`
 - `<ask>...</ask>` → `**Ask:** ...`
@@ -61,6 +66,36 @@ The converter automatically converts BMAD XML-style tags in instructions:
 - `<check>...</check>` → `**Check:** ...`
 - `<invoke-workflow>...</invoke-workflow>` → `**Invoke Workflow:** ...`
 - `<template-output>...</template-output>` → `**Template Output:** ...`
+
+## Auxiliary Resource Migration
+
+The converter automatically handles non-standard resources that are referenced by skills but live outside the normal agent/workflow structure in BMAD:
+
+1. **`documentation-standards.md`**:
+   - Source: `bmm/data/documentation-standards.md`
+   - Destination: `skills/bmm/tech-writer/data/documentation-standards.md`
+   - Purpose: Critical reference for technical writing skills
+
+2. **TEA Knowledge Base**:
+   - Source: `bmm/testarch/knowledge/`
+   - Destination: `skills/bmm/tea/knowledge/`
+   - Purpose: Extensive testing patterns and practices
+
+3. **TEA Index**:
+   - Source: `bmm/testarch/tea-index.csv`
+   - Destination: `skills/bmm/tea/tea-index.csv`
+   - Purpose: Index of testing architecture components
+
+## Path Rewriting
+
+To make skills portable, absolute BMAD paths (`{project-root}/_bmad/...`) are rewritten to relative skill paths:
+
+- **Cross-Skill References**: `../../{module}/{skill}/SKILL.md`
+- **Internal Resources**: `../../{module}/{skill}/data/...`
+- **Template Placeholders**: `{module-code}`, `{module-id}`, `[module]` patterns are preserved or adapted
+- **Migrated Resources**: Paths to migrated files (like `documentation-standards.md`) are updated to their new locations
+
+This ensures skills work correctly regardless of where the root `skills` directory is installed.
 
 ## Error Handling
 

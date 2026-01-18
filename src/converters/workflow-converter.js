@@ -19,6 +19,14 @@ export async function convertWorkflowToSkill(
   instructionsType = null,
   options = {}
 ) {
+  const { isMarkdown, bmadRoot, bmadRepo, bmadBranch } = {
+    isMarkdown: false,
+    bmadRoot: null,
+    bmadRepo: null,
+    bmadBranch: 'main',
+    ...options,
+  };
+
   if (!workflowPath || !(await fs.pathExists(workflowPath))) {
     throw new Error(`Workflow file not found: ${workflowPath}`);
   }
@@ -26,8 +34,6 @@ export async function convertWorkflowToSkill(
   if (!workflowDir || !(await fs.pathExists(workflowDir))) {
     throw new Error(`Workflow directory not found: ${workflowDir}`);
   }
-
-  const isMarkdown = options.isMarkdown || workflowPath.endsWith('.md');
 
   try {
     let workflow = {};
@@ -59,11 +65,17 @@ export async function convertWorkflowToSkill(
         }
 
         // The markdown content IS the instructions
-        instructionsContent = parseInstructions(markdownContent);
+        // Normalize headings to ensure hierarchy fits under "## Instructions"
+        // Downgrade all headings: # -> ###, ## -> ####
+        instructionsContent =
+          parseInstructions(markdownContent).replace(/^(#+)/gm, '##$1');
       } else {
         // No frontmatter, treat entire file as instructions
         // Try to extract basic metadata from filename or use defaults
-        instructionsContent = parseInstructions(workflowContent);
+        instructionsContent = parseInstructions(workflowContent).replace(
+          /^(#+)/gm,
+          '##$1'
+        );
       }
     } else if (workflowPath.endsWith('.xml')) {
       // workflow.xml format: pure XML file (like advanced-elicitation)
@@ -109,11 +121,15 @@ export async function convertWorkflowToSkill(
 
       // Read instructions if available
       if (instructionsPath && (await fs.pathExists(instructionsPath))) {
-        instructionsContent = await fs.readFile(instructionsPath, 'utf-8');
-        if (instructionsType === 'xml') {
-          instructionsContent = parseXmlInstructions(instructionsContent);
+        // Create link to instructions instead of embedding
+        if (bmadRoot && bmadRepo) {
+          const relativePath = path.relative(bmadRoot, instructionsPath);
+          const repoBase = bmadRepo.replace(/\.git$/, '');
+          const link = `${repoBase}/blob/${bmadBranch}/${relativePath}`;
+          instructionsContent = `See instructions at: [${path.basename(instructionsPath)}](${link})`;
         } else {
-          instructionsContent = parseInstructions(instructionsContent);
+          // Fallback if no repo info
+          instructionsContent = `See instructions in: ${path.basename(instructionsPath)}`;
         }
       } else {
         instructionsContent = 'No instructions available.';
@@ -127,6 +143,28 @@ export async function convertWorkflowToSkill(
     const inputs = workflow.inputs || {};
     const outputs = workflow.outputs || {};
     const steps = workflow.steps || [];
+
+    // Extract other configuration keys
+    const excludedKeys = [
+      'name',
+      'description',
+      'inputs',
+      'outputs',
+      'steps',
+      'standalone',
+      'version',
+      'author',
+      'web_bundle',
+      'isMarkdown',
+      'isXml',
+    ];
+
+    const configuration = {};
+    for (const [key, value] of Object.entries(workflow)) {
+      if (!excludedKeys.includes(key)) {
+        configuration[key] = value;
+      }
+    }
 
     // Check for related files and read previews
     const templatePath = path.join(workflowDir, 'template.md');
@@ -232,6 +270,7 @@ export async function convertWorkflowToSkill(
       hasChecklist,
       templatePreview,
       checklistPreview,
+      configuration,
       methodsFiles,
       stepFiles,
     });
@@ -538,6 +577,7 @@ function buildWorkflowSkillContent({
   checklistPreview,
   methodsFiles = [],
   stepFiles = [],
+  configuration = {},
 }) {
   // Build frontmatter
   const frontmatter = `---
@@ -550,7 +590,20 @@ description: ${description}
 # ${name}
 
 ## Overview
-${description}`;
+${description}
+
+${
+  Object.keys(configuration).length > 0
+    ? `## Configuration
+${Object.entries(configuration)
+  .map(([key, value]) => {
+    const formattedValue =
+      typeof value === 'object' ? JSON.stringify(value) : value;
+    return `- **${key}**: ${formattedValue}`;
+  })
+  .join('\n')}`
+    : ''
+}`;
 
   // Add "When to Use" section
   if (standalone) {

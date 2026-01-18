@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import { glob } from 'glob';
+import yaml from 'js-yaml';
 
 /**
  * Discovers all agent and workflow files in the BMAD repository
@@ -120,9 +121,40 @@ export async function findAgentsAndWorkflows(
 
             const relativePath = path.relative(bmadRoot, absolutePath);
             const module = extractModule(relativePath);
-            const name = path.basename(workflowDir);
+
             const isMarkdown = absolutePath.endsWith('.md');
             const isXml = absolutePath.endsWith('.xml');
+
+            let name = null;
+
+            // Extract name from file content
+            const content = await fs.readFile(absolutePath, 'utf-8');
+            if (isMarkdown) {
+              const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+              if (match) {
+                try {
+                  const frontmatter = yaml.load(match[1]);
+                  name = frontmatter.name;
+                } catch (_e) {
+                  // Ignore invalid frontmatter
+                }
+              }
+            } else if (isXml) {
+              const match = content.match(/name="([^"]+)"/);
+              if (match) name = match[1];
+            } else {
+              try {
+                const workflow = yaml.load(content);
+                name = workflow.name;
+              } catch (_e) {
+                // Ignore invalid YAML
+              }
+            }
+
+            // Fallback to directory name if no name found
+            if (!name) {
+              name = path.basename(workflowDir);
+            }
 
             // Determine instructions path based on workflow type
             let instructionsPath = null;
@@ -189,7 +221,7 @@ export async function findAgentsAndWorkflows(
             });
           } catch (error) {
             console.warn(
-              `Warning: Failed to process workflow file ${absolutePath}: ${error.message}`
+              `Warning: Failed to process workflow file ${filePath}: ${error.message}`
             );
           }
         }

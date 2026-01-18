@@ -278,7 +278,7 @@ These require AI understanding to:
 
 **2.2 Automation & Data Migration** (Automated) ✅ COMPLETED
 - ✅ Implemented `resource-migrator.js` to automatically move data/knowledge assets
-- ✅ integrated into `init --bootstrap` command for one-click setup
+- ✅ Integrated into `init --bootstrap` command for one-click setup
 - ✅ Updated `path-rewriter.js` to handle migrated resource paths relative to skills
 
 **2.3 AI-Agent Content Adaptation** (Manual/AI-assisted)
