@@ -88,31 +88,31 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
   // Rewrite directory references (without workflow.* at end)
   // {project-root}/_bmad/bmm/workflows/{category}/{name} -> ../../bmm/{name}
   result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/\d-[^/]+\/([^/\s'"]+)(?=['\s\`])/g,
+    /\{project-root\}\/_bmad\/bmm\/workflows\/\d-[^/]+\/([^/\s'"]+)(?=['\s`])/g,
     `${relativePrefix}/bmm/$1`
   );
 
   // {project-root}/_bmad/bmm/workflows/{name} (without trailing /) -> ../../bmm/{name}
   result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/([a-z][-a-z0-9]+)(?=['\s\`])/g,
+    /\{project-root\}\/_bmad\/bmm\/workflows\/([a-z][-a-z0-9]+)(?=['\s`])/g,
     `${relativePrefix}/bmm/$1`
   );
 
   // Rewrite bmad-quick-flow directory references
   result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/bmad-quick-flow\/([^/\s'"]+)(?=['\s\`])/g,
+    /\{project-root\}\/_bmad\/bmm\/workflows\/bmad-quick-flow\/([^/\s'"]+)(?=['\s`])/g,
     `${relativePrefix}/bmm/$1`
   );
 
   // Rewrite testarch directory references
   result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/testarch\/([^/\s'"]+)(?=['\s\`])/g,
+    /\{project-root\}\/_bmad\/bmm\/workflows\/testarch\/([^/\s'"]+)(?=['\s`])/g,
     `${relativePrefix}/bmm/$1`
   );
 
   // Rewrite workflow-status directory references
   result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/workflow-status(?=['\s\`\/])/g,
+    /\{project-root\}\/_bmad\/bmm\/workflows\/workflow-status(?=['\s`/])/g,
     `${relativePrefix}/bmm/workflow-status`
   );
 
