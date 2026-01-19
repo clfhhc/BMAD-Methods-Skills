@@ -38,6 +38,7 @@ To customize conversion:
 1. **Agent Conversion**: Edit `src/converters/agent-converter.js`
 2. **Workflow Conversion**: Edit `src/converters/workflow-converter.js`
 3. **Output Format**: Edit `src/utils/skill-writer.js`
+4. **Auxiliary resources and path patterns**: Edit `config.json` — add entries to `auxiliaryResources` (e.g. Excalidraw core, `excalidraw-diagrams/_shared`) and `pathPatterns` for any `{project-root}/_bmad/...` paths that need rewriting. See [Technical Reference - Auxiliary Resource Migration](technical-reference.md#auxiliary-resource-migration).
 
 # Troubleshooting
 

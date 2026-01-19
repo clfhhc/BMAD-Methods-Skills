@@ -45,6 +45,12 @@
       "dest": "core/resources/excalidraw",
       "name": "Excalidraw Resources",
       "isDirectory": true
+    },
+    {
+      "src": "src/bmm/workflows/excalidraw-diagrams/_shared",
+      "dest": "bmm/excalidraw-diagrams/_shared",
+      "name": "Excalidraw Diagrams Shared (templates, library)",
+      "isDirectory": true
     }
   ],
   "pathPatterns": [
@@ -82,6 +88,16 @@
       "pattern": "\\{project-root\\}/_bmad/core/resources/excalidraw/([^/\\\\s'\"]+)",
       "replacement": "{skill-root}/core/resources/excalidraw/$1",
       "description": "Excalidraw helper resources"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared/([^/\\\\s'\"]+)",
+      "replacement": "{skill-root}/bmm/excalidraw-diagrams/_shared/$1",
+      "description": "Excalidraw-diagrams _shared files (excalidraw-templates.yaml, excalidraw-library.json)"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared(?!/)",
+      "replacement": "{skill-root}/bmm/excalidraw-diagrams/_shared",
+      "description": "Excalidraw-diagrams _shared directory (when not followed by /)"
     },
     {
       "pattern": "\\{project-root\\}/_bmad/bmm/testarch/knowledge/",

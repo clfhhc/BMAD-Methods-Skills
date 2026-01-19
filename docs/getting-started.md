@@ -161,6 +161,18 @@ Edit `config.json` to customize:
       "src": "src/bmm/agents/tech-writer/tech-writer-sidecar/documentation-standards.md",
       "dest": "bmm/tech-writer/data/documentation-standards.md",
       "name": "Documentation Standards"
+    },
+    {
+      "src": "src/core/resources/excalidraw",
+      "dest": "core/resources/excalidraw",
+      "name": "Excalidraw Resources",
+      "isDirectory": true
+    },
+    {
+      "src": "src/bmm/workflows/excalidraw-diagrams/_shared",
+      "dest": "bmm/excalidraw-diagrams/_shared",
+      "name": "Excalidraw Diagrams Shared",
+      "isDirectory": true
     }
   ],
   "pathPatterns": [
@@ -168,13 +180,23 @@ Edit `config.json` to customize:
       "pattern": "\\{project-root\\}/_bmad/core/resources/excalidraw/([^/\\\\s'\\\"]+)",
       "replacement": "{skill-root}/core/resources/excalidraw/$1",
       "description": "Excalidraw helper resources"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared/([^/\\\\s'\\\"]+)",
+      "replacement": "{skill-root}/bmm/excalidraw-diagrams/_shared/$1",
+      "description": "Excalidraw _shared files (templates, library)"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared(?!/)",
+      "replacement": "{skill-root}/bmm/excalidraw-diagrams/_shared",
+      "description": "Excalidraw _shared directory"
     }
   ]
 }
 ```
 
-- **`auxiliaryResources`**: Define extra files or folders to migrate. Supported for recursive path rewriting.
-- **`pathPatterns`**: Custom regex rules for path adaptation. Applied before standard rewriting.
+- **`auxiliaryResources`**: Define extra files or folders to migrate (e.g. Excalidraw core, Excalidraw Diagrams Shared). Supports `isDirectory: true` for recursive copy. Migrated content gets path rewriting.
+- **`pathPatterns`**: Custom regex rules for path adaptation. Applied before standard rewriting. The default config includes patterns for Excalidraw core and `excalidraw-diagrams/_shared`; see [Technical Reference - Auxiliary Resource Migration](technical-reference.md#auxiliary-resource-migration) for the full list.
 
 ### Clean Up
 
