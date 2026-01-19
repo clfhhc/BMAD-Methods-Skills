@@ -38,43 +38,12 @@ Registry of skills with known `{project-root}` references requiring attention.
 
 ---
 
-## Priority: Low (Documentation Examples)
-
-### 3. skills/bmb/agent/data/critical-actions.md
-
-**Line 45:**
-```yaml
-  - 'Review {project-root}/finances/ for most recent data file'
-```
-
-**Status:** ✅ Keep as-is
-
-**Reason:** This is a code example showing valid Simple Agent pattern. Not an actionable instruction.
-
----
-
-### 4. skills/bmb/agent/data/reference/module-examples/trend-analyst.agent.yaml
-
-**Line 48:**
-```yaml
-      exec: "{project-root}/_bmad/cis/tasks/competitor-trend-watch.xml"
-```
-
-**Status:** ✅ Keep as-is
-
-**Reason:** Example agent YAML showing CIS module integration. CIS module not converted to skills - serves as reference only.
-
----
-
 ## Scan Results Summary
 
 | File | References | Category | Status |
 |------|------------|----------|--------|
 | `bmm/tech-writer/SKILL.md` | 1 | Actionable | ⚠️ Needs work |
 | `bmm/tea/SKILL.md` | 1 | Actionable | ⚠️ Needs work |
-| `bmb/agent/data/critical-actions.md` | 3 | Documentation | ✅ OK |
-| `bmb/agent/data/reference/...` | 1 | Documentation | ✅ OK |
-| `bmb/workflow/data/...` | Many | Documentation | ✅ OK |
 | `bmm/framework/...` | 2 | Actionable | ⚠️ May need work |
 
 ---

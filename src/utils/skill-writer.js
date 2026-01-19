@@ -5,7 +5,7 @@ import { rewriteBmadPaths, shouldRewritePaths } from './path-rewriter.js';
 /**
  * Writes a SKILL.md file and related resources to the output directory
  * @param {string} outputDir - Base output directory
- * @param {string} module - Module name (bmm, bmb, cis, core)
+ * @param {string} module - Module name (bmm, core)
  * @param {string} skillName - Skill name (sanitized)
  * @param {string} skillContent - SKILL.md content
  * @param {Object} options - Additional options
