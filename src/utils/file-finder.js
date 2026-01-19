@@ -241,18 +241,14 @@ export async function findAgentsAndWorkflows(
   return { agents, workflows };
 }
 
-/**
- * Extracts module name from file path
- * @param {string} relativePath - Path relative to BMAD root
- * @returns {string|null} Module name or null
- */
 function extractModule(relativePath) {
-  // Match patterns like: src/core/agents/... or src/modules/bmm/agents/...
-  const coreMatch = relativePath.match(/^src\/core\//);
-  if (coreMatch) return 'core';
+  // Support legacy structure: src/modules/bmm/agents/...
+  const modulesMatch = relativePath.match(/^src\/modules\/([^/]+)\//);
+  if (modulesMatch) return modulesMatch[1];
 
-  const moduleMatch = relativePath.match(/^src\/modules\/([^/]+)\//);
-  if (moduleMatch) return moduleMatch[1];
+  // Support new structure (and core): src/bmm/agents/... or src/core/agents/...
+  const srcMatch = relativePath.match(/^src\/([^/]+)\//);
+  if (srcMatch) return srcMatch[1];
 
   return null;
 }

@@ -8,7 +8,7 @@ This tool converts BMAD-METHOD (Breakthrough Method for Agile AI-Driven Developm
 - Discovers all agents (`.agent.yaml`) and workflows (`workflow.yaml` + `instructions.md`)
 - Converts them to Claude Skills format (`SKILL.md`)
 - Applies path rewriting for portability
-- Organizes output by module (bmm, bmb, cis, core)
+- Organizes output by module (bmm, core)
 
 ## Quick Start
 
@@ -26,13 +26,13 @@ This single command:
 1. ✅ Fetches and converts all BMAD agents/workflows
 2. ✅ Applies automatic path rewriting
 3. ✅ Installs skills to your tool's directory
-4. ✅ Generates `config.yaml` for each module (core, bmm, bmb)
+4. ✅ Generates `config.yaml` for each module (core, bmm)
 5. ✅ Cleans up temporary files
 
 **After installation**, customize the generated config files at:
 - `{skills-dir}/core/config.yaml` - User preferences
 - `{skills-dir}/bmm/config.yaml` - Project settings
-- `{skills-dir}/bmb/config.yaml` - Custom agent/workflow output
+- `{skills-dir}/{module}/config.yaml` - Module specific configuration
 
 ### Option B: AI-Guided Workflow
 
@@ -147,18 +147,18 @@ Edit `config.json` to customize:
   "bmadBranch": "main",
   "outputDir": "./skills",
   "tempDir": "./.temp/bmad-method",
-  "modules": ["bmm", "bmb", "cis", "core"],
+  "modules": ["bmm", "core"],
   "agentPaths": [
     "src/core/agents",
-    "src/modules/*/agents"
+    "src/*/agents"
   ],
   "workflowPaths": [
     "src/core/workflows",
-    "src/modules/*/workflows"
+    "src/*/workflows"
   ],
   "auxiliaryResources": [
     {
-      "src": "src/modules/bmm/data/documentation-standards.md",
+      "src": "src/bmm/agents/tech-writer/tech-writer-sidecar/documentation-standards.md",
       "dest": "bmm/tech-writer/data/documentation-standards.md",
       "name": "Documentation Standards"
     }

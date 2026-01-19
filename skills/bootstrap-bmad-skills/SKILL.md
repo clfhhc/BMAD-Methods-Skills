@@ -75,33 +75,27 @@ Prompt the user for each configuration setting. Offer the defaults shown:
 
 | Setting | Question | Default |
 |---------|----------|---------|
-| `user_name` | What name should I use to address you? | *(OS username)* |
-| `communication_language` | What language should I communicate in? | English |
-| `document_output_language` | What language for generated documents? | English |
-| `output_folder` | Where should BMAD output artifacts? | `{project-root}/documents/bmad` |
+| `user_name` | What should agents call you? (Use your name or a team name) | BMad |
+| `communication_language` | What language should agents use when chatting with you? | English |
+| `document_output_language` | Preferred document output language? | English |
+| `output_folder` | Where should output files be saved? | `_bmad-output` |
 
 ### BMM Configuration (`{skill-root}/bmm/config.yaml`)
 
 | Setting | Question | Default |
 |---------|----------|---------|
 | `project_name` | What is your project called? | *(directory name)* |
-| `user_skill_level` | What's your development experience? | `intermediate` |
-| `planning_artifacts` | Where to store planning docs? | `{output_folder}/planning-artifacts` |
-| `implementation_artifacts` | Where to store implementation docs? | `{output_folder}/implementation-artifacts` |
-| `project_knowledge` | Where to store project knowledge? | `{project-root}/docs` |
-
-### BMB Configuration (`{skill-root}/bmb/config.yaml`)
-
-| Setting | Question | Default |
-|---------|----------|---------|
-| `bmb_creations_output_folder` | Where to store BMB outputs? | `{output_folder}/bmb-creations` |
+| `user_skill_level` | What is your development experience level? | `intermediate` |
+| `planning_artifacts` | Where should planning artifacts be stored? (Brainstorming, Briefs, PRDs, UX Designs, Architecture, Epics) | `{output_folder}/planning-artifacts` |
+| `implementation_artifacts` | Where should implementation artifacts be stored? (Sprint status, stories, reviews, retrospectives, Quick Flow output) | `{output_folder}/implementation-artifacts` |
+| `project_knowledge` | Where should long-term project knowledge be stored? (docs, research, references) | `docs` |
 
 ---
 
 ## Verify
 
 1. Skills installed at the correct destination
-2. Config files exist (core, bmm, bmb)
+2. Config files exist (core, bmm)
 3. Paths use `{skill-root}` variable
 
 ## Guidelines
