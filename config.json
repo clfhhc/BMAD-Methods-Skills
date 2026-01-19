@@ -3,16 +3,9 @@
   "bmadBranch": "main",
   "outputDir": "./skills",
   "tempDir": "./.temp/bmad-method",
-  "modules": [
-    "bmm",
-    "core"
-  ],
-  "agentPaths": [
-    "src/*/agents"
-  ],
-  "workflowPaths": [
-    "src/*/workflows"
-  ],
+  "modules": ["bmm", "core"],
+  "agentPaths": ["src/*/agents"],
+  "workflowPaths": ["src/*/workflows"],
   "enhancements": {
     "optional": {
       "addExamples": true,
@@ -53,51 +46,121 @@
       "isDirectory": true
     }
   ],
+  "skillMap": {
+    "sourcePrefix": "\\{project-root\\}/_bmad/",
+    "dirLookahead": "(?=['\\s`]|$)",
+    "replacementPrefix": "{skill-root}"
+  },
   "pathPatterns": [
     {
-      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb|cis)/workflows/([^/\\\\s'\"]+)/workflow\\.(yaml|md|xml)",
-      "replacement": "{skill-root}/$1/$2/SKILL.md",
-      "description": "Standard workflow files"
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/workflow-status/init/workflow\\.(yaml|md)",
+      "replacement": "{skill-root}/bmm/init/SKILL.md",
+      "description": "Init nested workflow (must run before workflow-status dir)"
     },
     {
-      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb|cis)/config\\.yaml",
-      "replacement": "{skill-root}/$1/config.yaml",
-      "description": "Module config files"
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/document-project/workflows",
+      "replacement": "{skill-root}/bmm/document-project",
+      "description": "document-project workflows dir"
     },
     {
-      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb|cis)/workflows/([^/\\\\s'\"]+)/([^/\\\\s'\"]+\\.(md|csv|yaml|xml))",
-      "replacement": "{skill-root}/$1/$2/$3",
-      "description": "Files within workflow directories"
+      "pattern": "\\{project-root\\}/_bmad/core/workflows/([^/\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/core/$1/SKILL.md",
+      "description": "Core workflow files"
     },
     {
-      "pattern": "\\{project-root\\}/_bmad/_memory/([^/\\\\s'\"]+)",
-      "replacement": "{runtime-memory}/$1",
-      "description": "Runtime memory references"
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/(?:\\d-[^/]+/)?([^/\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/bmm/$1/SKILL.md",
+      "description": "BMM workflow files (incl. category folders)"
     },
     {
-      "pattern": "\\{project-root\\}/_bmad/bmb-creations",
-      "replacement": "{output-folder}/bmb-creations",
-      "description": "BMB creations output folder"
+      "pattern": "\\{project-root\\}/_bmad/bmm/(?:workflows/)?testarch/([^/\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/bmm/testarch-$1/SKILL.md",
+      "description": "Testarch workflow files"
     },
     {
-      "pattern": "\\{project-root\\}/_data/([^/\\\\s'\"]+)",
-      "replacement": "{project-data}/$1",
-      "description": "Project data files"
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/([^/\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/bmm/$1/SKILL.md",
+      "description": "Excalidraw-diagrams workflow files"
     },
     {
-      "pattern": "\\{project-root\\}/_bmad/core/resources/excalidraw/([^/\\\\s'\"]+)",
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/bmad-quick-flow/([^/\\s'\"]+)/workflow\\.(yaml|md)",
+      "replacement": "{skill-root}/bmm/$1/SKILL.md",
+      "description": "bmad-quick-flow workflow files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/core/tasks/workflow\\.xml",
+      "replacement": "{skill-root}/core/tasks/SKILL.md",
+      "description": "Core tasks workflow.xml"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/core/resources/excalidraw/([^/\\s'\"]+)",
       "replacement": "{skill-root}/core/resources/excalidraw/$1",
       "description": "Excalidraw helper resources"
     },
     {
-      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared/([^/\\\\s'\"]+)",
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared/([^/\\s'\"]+)",
       "replacement": "{skill-root}/bmm/excalidraw-diagrams/_shared/$1",
-      "description": "Excalidraw-diagrams _shared files (excalidraw-templates.yaml, excalidraw-library.json)"
+      "description": "Excalidraw-diagrams _shared files"
     },
     {
       "pattern": "\\{project-root\\}/_bmad/bmm/workflows/excalidraw-diagrams/_shared(?!/)",
       "replacement": "{skill-root}/bmm/excalidraw-diagrams/_shared",
-      "description": "Excalidraw-diagrams _shared directory (when not followed by /)"
+      "description": "Excalidraw-diagrams _shared directory"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb)/workflows/(?:\\d-[^/]+/)?([^/\\s'\"]+)/([^/\\s'\"]+\\.(md|csv|yaml|xml))",
+      "replacement": "{skill-root}/$1/$2/$3",
+      "description": "Files within workflow dirs"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb)/workflows/(?:\\d-[^/]+/)?([^/\\s'\"]+)/steps/([^/\\s'\"]+)",
+      "replacement": "{skill-root}/$1/$2/steps/$3",
+      "description": "Step files within workflows"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmb/workflows/([^/\\s'\"]+)/(steps-[^/]+)/([^/\\s'\"]+)",
+      "replacement": "{skill-root}/bmb/$1/$2/$3",
+      "description": "BMB workflow step files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/\\d-[^/]+/([^/\\s'\"]+)(?=['\\s`])",
+      "replacement": "{skill-root}/bmm/$1",
+      "description": "BMM workflows dir with category"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/([a-z][-a-z0-9]+)(?=['\\s`])",
+      "replacement": "{skill-root}/bmm/$1",
+      "description": "BMM workflows dir (no category)"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/bmad-quick-flow/([^/\\s'\"]+)(?=['\\s`])",
+      "replacement": "{skill-root}/bmm/$1",
+      "description": "bmad-quick-flow directory refs"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/testarch/([^/\\s'\"]+)(?=['\\s`])",
+      "replacement": "{skill-root}/bmm/testarch-$1",
+      "description": "Testarch directory refs"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/workflows/workflow-status(?=['\\s`/])",
+      "replacement": "{skill-root}/bmm/workflow-status",
+      "description": "workflow-status directory"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(bmm|bmb|core)/config\\.yaml",
+      "replacement": "{skill-root}/$1/config.yaml",
+      "description": "Module config files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/_config/agent-manifest\\.csv",
+      "replacement": "{skill-root}/agent-manifest.csv",
+      "description": "Agent manifest"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/testarch/tea-index\\.csv",
+      "replacement": "{skill-root}/bmm/tea/tea-index.csv",
+      "description": "TEA tea-index.csv"
     },
     {
       "pattern": "\\{project-root\\}/_bmad/bmm/testarch/knowledge/",
@@ -105,9 +168,104 @@
       "description": "TEA Knowledge Base (migrated)"
     },
     {
+      "pattern": "\\{project-root\\}/_bmad/bmm/data/documentation-standards\\.md",
+      "replacement": "{skill-root}/bmm/tech-writer/data/documentation-standards.md",
+      "description": "documentation-standards (migrated to tech-writer)"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/_memory/([^/\\s'\"]+)",
+      "replacement": "{runtime-memory}/$1",
+      "description": "Runtime memory"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmb-creations",
+      "replacement": "{output-folder}/bmb-creations",
+      "description": "bmb-creations output folder"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/core/tasks/([^/\\s'\"]+\\.xml)",
+      "replacement": "{skill-root}/core/tasks/$1",
+      "description": "Core tasks XML files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(bmm|bmb|core)/tasks/([^/\\s'\"]+)",
+      "replacement": "{skill-root}/$1/tasks/$2",
+      "description": "Module tasks"
+    },
+    {
+      "pattern": "\\{project-root\\}/_data/([^/\\s'\"]+)",
+      "replacement": "{project-data}/$1",
+      "description": "Project data files"
+    },
+    {
+      "pattern": "\\{project-root\\}/src/modules/(bmm|bmb|core)/workflows/(?:\\d-[^/]+/)?([^/\\s'\"]+)",
+      "replacement": "{skill-root}/$1/$2",
+      "description": "src/modules workflow refs"
+    },
+    {
+      "pattern": "\\{project-root\\}/src/modules/bmb/workflows/([^/\\s'\"]+)/(steps-[^/]+)/([^/\\s'\"]+)",
+      "replacement": "{skill-root}/bmb/$1/$2/$3",
+      "description": "src/modules BMB step refs"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/cis/workflows/([^/\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/cis/$1/SKILL.md",
+      "description": "CIS workflow files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(bmm|bmb|core|cis)/workflows/([a-z][-a-z0-9]+)(?=['\\s`]|$)",
+      "replacement": "{skill-root}/$1/$2",
+      "description": "Generic workflow fallback (only when no extra path segment)"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\{module-code\\}/workflows/",
+      "replacement": "{skill-root}/{module-code}/",
+      "description": "Template {module-code}"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\{module-id\\}/workflows/",
+      "replacement": "{skill-root}/{module-id}/",
+      "description": "Template {module-id}"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\{module\\}/",
+      "replacement": "{skill-root}/{module}/",
+      "description": "Template {module}"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\{module_code\\}/workflows/",
+      "replacement": "{skill-root}/{module_code}/",
+      "description": "Template {module_code}"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\[module\\]/",
+      "replacement": "{skill-root}/[module]/",
+      "description": "Template [module]"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\[module-path\\]/workflows/",
+      "replacement": "{skill-root}/[module-path]/",
+      "description": "Template [module-path]"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\[MODULE FOLDER\\]/",
+      "replacement": "{skill-root}/[MODULE FOLDER]/",
+      "description": "Template [MODULE FOLDER]"
+    },
+    {
+      "pattern": "\\{project-root\\}/\\.\\.\\./([^/\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/.../$1/SKILL.md",
+      "description": "Ellipsis workflow in docs"
+    },
+    {
       "pattern": "\\{project-root\\}/_bmad/\\.\\.\\./",
       "replacement": "{skill-root}/.../",
-      "description": "Ellipsis in documentation examples"
+      "description": "Ellipsis in documentation"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/core/workflows/\\{workflow-name\\}/",
+      "replacement": "{skill-root}/core/{workflow-name}/",
+      "description": "Template {workflow-name}"
     }
   ]
 }

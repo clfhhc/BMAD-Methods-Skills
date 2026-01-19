@@ -97,20 +97,15 @@ Migrated resources are processed recursively. Any text-based files within these 
 
 ## Path Rewriting
 
-To make skills portable, path rewriting uses a dynamic map of all discovered skills combined with configurable regex patterns:
+To make skills portable, path rewriting uses **config-driven regex patterns** plus a dynamic map of discovered skills:
 
-- **Configurable Patterns**: Custom rewriting rules can be added to `config.json` under `pathPatterns`. These are applied first.
-- **Pattern Optimization**: Regex patterns are pre-compiled once at startup for maximum performance during large conversion runs.
-- **Exact Skill Resolution**: Uses a `skillMap` to resolve paths like `testarch/ci/workflow.yaml` to their correct installed name e.g. `testarch-ci`.
-- **Global Normalization**: Path normalization ensures that both module paths (`src/*/`) and core paths (`src/core/*`) are correctly mapping to their destination equivalents.
-- **Skill Root Variable**: Replaces fragile relative paths (`../../`) with `{skill-root}`.
-- **Variable Consolidation**: `{skill-config}` has been merged into `{skill-root}`.
-- **Standardized Paths**:
-  - Cross-Skill: `{skill-root}/{module}/{skill}/SKILL.md`
-  - Resources: `{skill-root}/{module}/{skill}/data/...`
-  - Excalidraw core: `{skill-root}/core/resources/excalidraw/...`
-  - Excalidraw shared: `{skill-root}/bmm/excalidraw-diagrams/_shared/...` (templates, library)
-- **Migrated Resources**: Paths to migrated files are updated to their new locations.
+- **Source of truth**: All path-rewrite rules are defined in `config.json` under `pathPatterns`. Each entry has `pattern` (regex string), `replacement`, and optional `description`. Order in the array matters—specific rules (e.g. init, document-project) must come before generic ones.
+- **skillMap options**: The dynamic skillMap block (exact file and directory rewrites from discovered agents/workflows) uses `config.skillMap`: `sourcePrefix` (regex fragment for `{project-root}/_bmad/`), `dirLookahead` (lookahead so directory matches don’t over-match, e.g. space/quote/backtick or end), and `replacementPrefix` (e.g. `{skill-root}`). Omit `skillMap` to use built-in defaults.
+- **Pattern optimization**: Regexes are pre-compiled at startup for performance.
+- **Exact skill resolution**: A `skillMap` of discovered agents/workflows is applied after `pathPatterns` to resolve exact source paths to destination skills.
+- **Skill root variable**: Output uses `{skill-root}` instead of fragile relative paths.
+- **Standardized paths** (from `pathPatterns`): Cross-skill `{skill-root}/{module}/{skill}/SKILL.md`; resources under `data/`; Excalidraw under `core/resources/excalidraw/` and `bmm/excalidraw-diagrams/_shared/`.
+- **Migrated resources**: Paths inside files migrated via `auxiliaryResources` are rewritten using the same `pathPatterns`.
 
 This ensures skills work correctly regardless of where the root `skills` directory is installed and that cross-skill references are robust.
 
