@@ -59,6 +59,12 @@ npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills
 npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --tool=[TOOL] --force
 ```
 
+### Step 5: Clean up
+
+```bash
+rm -rf .temp
+```
+
 ---
 
 ## Configure Installation
