@@ -1,3 +1,10 @@
+## [0.1.2](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.1...v0.1.2) (2026-01-19)
+
+
+### Bug Fixes
+
+* trigger release for prompt changes ([#6](https://github.com/clfhhc/BMAD-Methods-Skills/issues/6)) ([ef6a273](https://github.com/clfhhc/BMAD-Methods-Skills/commit/ef6a27383453877af3ffb4fb75c5b2e4262acd53))
+
 ## [0.1.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.0...v0.1.1) (2026-01-19)
 
 
