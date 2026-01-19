@@ -24,15 +24,15 @@ This installs `bootstrap-bmad-skills` and `enhance-bmad-skills`. Then open your 
 1. **Fetches** the latest BMAD-METHOD from GitHub
 2. **Converts** agents and workflows to Claude Skills format
 3. **Installs** skills to your AI tool's directory
-4. **Generates** module config files (core, bmm, bmb)
+4. **Generates** module config files (core, bmm)
 
 ## Supported Tools
 
 | Tool | Directory |
 |------|-----------|
-| **Antigravity** | `.agent/skills/` |
-| **Cursor** | `.cursor/skills/` |
-| **Claude Code** | `.claude/skills/` (local) or `~/.claude/skills/` (global) |
+| **Antigravity** | `.agent/skills/` (project) or `~/.gemini/antigravity/skills/` (global) |
+| **Cursor** | `.cursor/skills/` (project) or `~/.cursor/skills/` (global) |
+| **Claude Code** | `.claude/skills/` (project) or `~/.claude/skills/` (global) |
 
 ## Documentation
 

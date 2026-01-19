@@ -44,8 +44,8 @@ Ask whether to install skills **globally** or **project-specific**:
 
 | Scope | Description | Destination |
 |-------|-------------|-------------|
-| **Global** | Skills available across all projects | `~/.claude/skills/` (Claude only) |
-| **Project-Specific** | Skills limited to current repo | `.[tool]/skills/` |
+| **Global** | Skills available across all projects | Cursor: `~/.cursor/skills/`; Antigravity: `~/.gemini/antigravity/skills/`; Claude Code: `~/.claude/skills/` |
+| **Project-Specific** | Skills limited to current repo | Cursor: `.cursor/skills/`; Antigravity: `.agent/skills/`; Claude Code: `.claude/skills/` |
 
 ### Step 3: Fetch & Convert
 
