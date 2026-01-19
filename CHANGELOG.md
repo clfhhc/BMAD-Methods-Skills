@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.0...v0.2.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* excalidraw core resource references ([#8](https://github.com/clfhhc/BMAD-Methods-Skills/issues/8)) ([502054e](https://github.com/clfhhc/BMAD-Methods-Skills/commit/502054edb05783ed0a628d54e68cc99b9bd61caa))
+
 # [0.2.0](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.3...v0.2.0) (2026-01-19)
 
 
