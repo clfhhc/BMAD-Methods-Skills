@@ -1,3 +1,10 @@
+# [0.1.0](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.0.5...v0.1.0) (2026-01-19)
+
+
+### Features
+
+* bootstrap skill ([#4](https://github.com/clfhhc/BMAD-Methods-Skills/issues/4)) ([c0a183d](https://github.com/clfhhc/BMAD-Methods-Skills/commit/c0a183dbd82a5af1df6c77e9f6e3beb50635bba9))
+
 ## [0.0.5](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.0.4...v0.0.5) (2026-01-18)
 
 
