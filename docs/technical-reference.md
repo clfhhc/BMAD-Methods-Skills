@@ -10,10 +10,14 @@ skills/
 │   │   └── SKILL.md
 │   ├── pm/
 │   │   └── SKILL.md
+│   ├── excalidraw-diagrams/
+│   │   └── _shared/         # excalidraw-templates.yaml, excalidraw-library.json
 │   ├── config.yaml          # Project configuration
-│   └── (skills...)          # BMM methodology skills
+│   └── (skills...)          # BMM methodology skills (includes create-excalidraw-*)
 ├── core/
 │   ├── config.yaml          # Core user settings
+│   ├── resources/
+│   │   └── excalidraw/      # excalidraw-helpers.md, validate-json-instructions.md, etc.
 │   └── (skills...)          # Core system skills
 ```
 
@@ -81,7 +85,12 @@ The converter automatically handles non-standard resources referenced by skills 
 4. **Excalidraw Resources**:
    - Source: `src/core/resources/excalidraw`
    - Destination: `core/resources/excalidraw`
-   - Purpose: Visual assets for diagramming skills
+   - Purpose: Universal Excalidraw helpers (excalidraw-helpers.md, validate-json-instructions.md, library-loader.md)
+
+5. **Excalidraw Diagrams Shared**:
+   - Source: `src/bmm/workflows/excalidraw-diagrams/_shared`
+   - Destination: `bmm/excalidraw-diagrams/_shared`
+   - Purpose: Domain-specific templates and library (excalidraw-templates.yaml, excalidraw-library.json) used by create-excalidraw-flowchart, create-excalidraw-diagram, create-excalidraw-wireframe, create-excalidraw-dataflow
 
 ### Recursive Path Rewriting
 Migrated resources are processed recursively. Any text-based files within these resources (e.g., Markdown in the TEA knowledge base) have their internal paths rewritten to be compatible with the new skill structure.
@@ -99,6 +108,8 @@ To make skills portable, path rewriting uses a dynamic map of all discovered ski
 - **Standardized Paths**:
   - Cross-Skill: `{skill-root}/{module}/{skill}/SKILL.md`
   - Resources: `{skill-root}/{module}/{skill}/data/...`
+  - Excalidraw core: `{skill-root}/core/resources/excalidraw/...`
+  - Excalidraw shared: `{skill-root}/bmm/excalidraw-diagrams/_shared/...` (templates, library)
 - **Migrated Resources**: Paths to migrated files are updated to their new locations.
 
 This ensures skills work correctly regardless of where the root `skills` directory is installed and that cross-skill references are robust.
