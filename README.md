@@ -30,9 +30,9 @@ This installs `bootstrap-bmad-skills` and `enhance-bmad-skills`. Then open your 
 
 | Tool | Directory |
 |------|-----------|
-| **Antigravity** | `.agent/skills/` |
-| **Cursor** | `.cursor/skills/` |
-| **Claude Code** | `.claude/skills/` (local) or `~/.claude/skills/` (global) |
+| **Antigravity** | `.agent/skills/` (project) or `~/.gemini/antigravity/skills/` (global) |
+| **Cursor** | `.cursor/skills/` (project) or `~/.cursor/skills/` (global) |
+| **Claude Code** | `.claude/skills/` (project) or `~/.claude/skills/` (global) |
 
 ## Documentation
 

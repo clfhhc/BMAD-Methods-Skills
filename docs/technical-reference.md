@@ -122,12 +122,12 @@ Skills use placeholder variables to remain portable across installations:
 
 | Variable | Description | Example Replacement |
 |----------|-------------|---------------------|
-| `{skill-root}` | Root of skills directory | `/project/.agent/skills` |
+| `{skill-root}` | Root of skills directory | `/project/.cursor/skills` (or `.agent/skills`, `.claude/skills`). Global: `~/.cursor/skills/` (Cursor), `~/.gemini/antigravity/skills/` (Antigravity), `~/.claude/skills/` (Claude Code) |
 | `{project-data}` | Project data directory | `/project/_data` |
 | `{runtime-memory}` | Runtime memory (tool-specific) | `.agent/memory` |
 | `{output-folder}` | Generated content folder | `./output` |
 
-The `bootstrap-bmad-skills` skill guides users through configuring these variables.
+The `bootstrap-bmad-skills` skill guides users through configuring these variables. See **Supported Tools** in the README for the full directory list.
 
 ## Error Handling
 
