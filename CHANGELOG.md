@@ -1,3 +1,10 @@
+## [0.1.3](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.2...v0.1.3) (2026-01-19)
+
+
+### Bug Fixes
+
+* add clean up steps ([a801239](https://github.com/clfhhc/BMAD-Methods-Skills/commit/a80123998a0c83a5b8449868d1586cab1e6c4584))
+
 ## [0.1.2](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.1...v0.1.2) (2026-01-19)
 
 
