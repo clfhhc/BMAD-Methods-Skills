@@ -1,3 +1,10 @@
+## [0.2.3](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.2...v0.2.3) (2026-01-19)
+
+
+### Bug Fixes
+
+* remove bmb references ([#10](https://github.com/clfhhc/BMAD-Methods-Skills/issues/10)) ([7077351](https://github.com/clfhhc/BMAD-Methods-Skills/commit/7077351ab3236393295a35d6ef9e04dd00eeb363))
+
 ## [0.2.2](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.1...v0.2.2) (2026-01-19)
 
 
