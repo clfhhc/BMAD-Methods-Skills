@@ -5,27 +5,40 @@
 
 Automatically convert BMAD-METHOD agents and workflows to Claude Skills format.
 
-## Distribution (New Projects)
+## Quick Start
 
-To install the BMAD bootstrap skill into a new project, you can use `npx`:
+Install the BMAD bootstrap skill into your project:
 
 ```bash
-npx @clfhhc/bmad-methods-skills init --bootstrap
+npx @clfhhc/bmad-methods-skills init
+# or
+pnpm dlx @clfhhc/bmad-methods-skills init
 ```
 
-This will:
-1. Detect your AI tool (.agent, .cursor, or .claude)
-2. Automatically fetch, convert, and install the complete BMAD method suite
-3. Install `bootstrap-bmad-skills` and `enhance-bmad-skills` for future maintenance
-4. Enable the `BS` command as a manual backup workflow
+This installs `bootstrap-bmad-skills` and `enhance-bmad-skills`. Then open your AI tool and use the **`BS`** command to start the guided installation workflow.
+
+> **Note:** For fully automated installation without prompts, use `init --bootstrap` instead.
+
+## What It Does
+
+1. **Fetches** the latest BMAD-METHOD from GitHub
+2. **Converts** agents and workflows to Claude Skills format
+3. **Installs** skills to your AI tool's directory
+4. **Generates** module config files (core, bmm, bmb)
+
+## Supported Tools
+
+| Tool | Directory |
+|------|-----------|
+| **Antigravity** | `.agent/skills/` |
+| **Cursor** | `.cursor/skills/` |
+| **Claude Code** | `.claude/skills/` (local) or `~/.claude/skills/` (global) |
 
 ## Documentation
 
-For full documentation on development, manual usage, and technical details, please see:
-
-- **[Getting Started](docs/getting-started.md)**: Installation, Usage, and Configuration
+- **[Getting Started](docs/getting-started.md)**: Installation and configuration
 - **[Technical Reference](docs/technical-reference.md)**: Output structure and conversion details
-- **[Development](docs/development.md)**: Project structure, contributing, and troubleshooting
+- **[Development](docs/development.md)**: Contributing and project structure
 
 ## License
 
@@ -33,20 +46,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Credits
 
-- **BMAD-METHOD**: Created by [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD)
-- **Claude Skills**: Format by [Anthropic](https://github.com/anthropics/skills)
-
-## Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+- **BMAD-METHOD**: [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD)
+- **Claude Skills**: [Anthropic](https://github.com/anthropics/skills)
 
 ## Related Projects
 
 - [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) - Original BMAD methodology
-- [Claude Skills](https://github.com/anthropics/skills) - Claude Skills specification and examples
+- [Claude Skills](https://github.com/anthropics/skills) - Claude Skills specification

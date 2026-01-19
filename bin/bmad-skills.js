@@ -65,11 +65,11 @@ async function install(args) {
   }
 
   if (validSkills.length === 0) {
-    console.warn('⚠️  No skill directories found in source.');
+    console.warn('⚠️  No module directories found in source.');
     return;
   }
 
-  console.log(`\nFound ${validSkills.length} skills to install.`);
+  console.log(`\nFound ${validSkills.length} modules to install.`);
 
   // Install
   for (const skillName of validSkills) {

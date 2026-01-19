@@ -9,13 +9,33 @@ This tool converts BMAD-METHOD (Breakthrough Method for Agile AI-Driven Developm
 - Converts them to Claude Skills format (`SKILL.md`)
 - Organizes output by module (bmm, bmb, cis, core)
 
+## Quick Start (Recommended)
+
+For most users, the simplest way to get started is:
+
+```bash
+# Install the bootstrap skill
+npx @clfhhc/bmad-methods-skills init
+
+# Then open your AI tool and type:
+# BS
+```
+
+The `BS` command starts an AI-guided workflow that:
+1. Asks which tool you're using (Claude Code, Cursor, Antigravity)
+2. Asks if you want global or project-specific installation
+3. Fetches and converts BMAD skills
+4. Guides you through configuration
+
+> **For automation:** Use `init --bootstrap` to skip prompts and use defaults.
+
 ## Prerequisites
 
 - **Node.js** v20+ (managed via Mise with `.node-version`)
 - **Git** (for cloning BMAD-METHOD repository)
 - **Mise** (optional, for Node.js version management)
 
-## Installation
+## Installation (Development)
 
 1. Clone this repository:
 ```bash

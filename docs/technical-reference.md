@@ -100,6 +100,29 @@ To make skills portable, path rewriting uses a dynamic map of all discovered ski
 
 This ensures skills work correctly regardless of where the root `skills` directory is installed and that cross-skill references are robust.
 
+## Module Configuration
+
+The converter creates `config.yaml` files for each module, matching the BMAD installer behavior:
+
+- `core/config.yaml` - Core module configuration
+- `bmm/config.yaml` - BMM module configuration
+- `bmb/config.yaml` - BMB module configuration (if present)
+
+Skills reference these configs using `{skill-root}/{module}/config.yaml`. Users should customize these files for their project settings.
+
+## Placeholder Variables
+
+Skills use placeholder variables to remain portable across installations:
+
+| Variable | Description | Example Replacement |
+|----------|-------------|---------------------|
+| `{skill-root}` | Root of skills directory | `/project/.agent/skills` |
+| `{project-data}` | Project data directory | `/project/_data` |
+| `{runtime-memory}` | Runtime memory (tool-specific) | `.agent/memory` |
+| `{output-folder}` | Generated content folder | `./output` |
+
+The `bootstrap-bmad-skills` skill guides users through configuring these variables.
+
 ## Error Handling
 
 The converter includes comprehensive error handling:
