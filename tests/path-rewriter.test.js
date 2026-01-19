@@ -13,7 +13,7 @@ test('rewriteBmadPaths', async (t) => {
 
     const content =
       'path: {project-root}/_bmad/bmm/workflows/testarch/ci/workflow.yaml';
-    const result = rewriteBmadPaths(content, 'bmm', skillMap);
+    const result = rewriteBmadPaths(content, skillMap);
 
     assert.strictEqual(result, 'path: {skill-root}/bmm/testarch-ci/SKILL.md');
   });
@@ -26,7 +26,7 @@ test('rewriteBmadPaths', async (t) => {
     });
 
     const content = 'dir: {project-root}/_bmad/bmm/workflows/testarch/ci';
-    const result = rewriteBmadPaths(content, 'bmm', skillMap);
+    const result = rewriteBmadPaths(content, skillMap);
 
     // Directory should map to skill root
     assert.strictEqual(result, 'dir: {skill-root}/bmm/testarch-ci');
@@ -38,7 +38,7 @@ test('rewriteBmadPaths', async (t) => {
 
     const content =
       'path: {project-root}/_bmad/bmm/workflows/some-new-flow/workflow.yaml';
-    const result = rewriteBmadPaths(content, 'bmm', skillMap);
+    const result = rewriteBmadPaths(content, skillMap);
 
     // Should fallback to legacy regex: bmm/some-new-flow/SKILL.md
     assert.strictEqual(result, 'path: {skill-root}/bmm/some-new-flow/SKILL.md');
@@ -46,7 +46,7 @@ test('rewriteBmadPaths', async (t) => {
 
   await t.test('replaces variable placeholders', () => {
     const content = 'conf: {project-root}/_bmad/bmm/config.yaml';
-    const result = rewriteBmadPaths(content, 'bmm');
+    const result = rewriteBmadPaths(content);
 
     // {skill-config} was consolidated to {skill-root}
     assert.strictEqual(result, 'conf: {skill-root}/bmm/config.yaml');

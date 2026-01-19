@@ -14,7 +14,8 @@
       "!**/.temp",
       "!**/package.json",
       "!**/pnpm-lock.yaml",
-      "!**/CHANGELOG.md"
+      "!**/CHANGELOG.md",
+      "!**/config.json"
     ]
   },
   "formatter": {
@@ -24,7 +25,13 @@
     "lineWidth": 80,
     "lineEnding": "lf"
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {

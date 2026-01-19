@@ -49,8 +49,8 @@ export async function writeSkill(
     // Rewrite BMAD paths in SKILL.md content
     const rewrittenContent = rewriteBmadPaths(
       skillContent,
-      module,
-      options.skillMap
+      options.skillMap,
+      options.pathPatterns
     );
 
     // Write SKILL.md
@@ -63,7 +63,8 @@ export async function writeSkill(
           options.workflowDir,
           skillDir,
           module,
-          options.skillMap
+          options.skillMap,
+          options.pathPatterns
         );
       } catch (copyError) {
         console.warn(
@@ -86,7 +87,16 @@ export async function writeSkill(
 /**
  * Recursively copy a directory, rewriting BMAD paths in text files
  */
-async function copyDirectoryWithPathRewrite(srcDir, destDir, module, skillMap) {
+/**
+ * Recursively copy a directory, rewriting BMAD paths in text files
+ */
+async function copyDirectoryWithPathRewrite(
+  srcDir,
+  destDir,
+  module,
+  skillMap,
+  pathPatterns
+) {
   const entries = await fs.readdir(srcDir, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -115,12 +125,21 @@ async function copyDirectoryWithPathRewrite(srcDir, destDir, module, skillMap) {
       }
 
       await fs.ensureDir(destPath);
-      await fs.ensureDir(destPath);
-      await copyDirectoryWithPathRewrite(srcPath, destPath, module, skillMap);
+      await copyDirectoryWithPathRewrite(
+        srcPath,
+        destPath,
+        module,
+        skillMap,
+        pathPatterns
+      );
     } else if (shouldRewritePaths(entry.name)) {
       // Read, rewrite paths, and write text files
       const content = await fs.readFile(srcPath, 'utf-8');
-      const rewrittenContent = rewriteBmadPaths(content, module, skillMap);
+      const rewrittenContent = rewriteBmadPaths(
+        content,
+        skillMap,
+        pathPatterns
+      );
       await fs.writeFile(destPath, rewrittenContent, 'utf-8');
     } else {
       // Copy binary/other files as-is
