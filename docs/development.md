@@ -15,9 +15,21 @@ BMAD-Methods-Skills/
 │   └── utils/             # Utility functions
 │       ├── bmad-fetcher.js
 │       ├── file-finder.js
+│       ├── path-rewriter.js   # Dynamic path adaptation
+│       ├── resource-migrator.js # Auxiliary resource handler
 │       └── skill-writer.js
 └── skills/                # Converted skills (committed to repo)
 ```
+
+## Testing
+
+Use the built-in test suite to verify path rewriting logic:
+
+```bash
+pnpm test
+```
+
+Tests for `path-rewriter.js` ensure that both `skillMap` resolutions and fallback regex patterns produce correct, portable paths.
 
 ## Adding New Conversion Rules
 

@@ -69,28 +69,41 @@ For legacy or XML-only workflows (where instructions are embedded), the converte
 
 ## Auxiliary Resource Migration
 
-The converter automatically handles non-standard resources that are referenced by skills but live outside the normal agent/workflow structure in BMAD:
+The converter automatically handles non-standard resources referenced by skills that live outside the normal agent/workflow structure. Resource migration is **configurable via `config.json`** under the `auxiliaryResources` key.
+
+### Core Migrations
 
 1. **`documentation-standards.md`**:
-   - Source: `bmm/data/documentation-standards.md`
-   - Destination: `skills/bmm/tech-writer/data/documentation-standards.md`
+   - Source: `src/modules/bmm/data/documentation-standards.md`
+   - Destination: `bmm/tech-writer/data/documentation-standards.md`
    - Purpose: Critical reference for technical writing skills
 
 2. **TEA Knowledge Base**:
-   - Source: `bmm/testarch/knowledge/`
-   - Destination: `skills/bmm/tea/knowledge/`
+   - Source: `src/modules/bmm/testarch/knowledge/`
+   - Destination: `bmm/tea/knowledge/`
    - Purpose: Extensive testing patterns and practices
 
 3. **TEA Index**:
-   - Source: `bmm/testarch/tea-index.csv`
-   - Destination: `skills/bmm/tea/tea-index.csv`
+   - Source: `src/modules/bmm/testarch/tea-index.csv`
+   - Destination: `bmm/tea/tea-index.csv`
    - Purpose: Index of testing architecture components
+
+4. **Excalidraw Resources**:
+   - Source: `src/core/resources/excalidraw`
+   - Destination: `core/resources/excalidraw`
+   - Purpose: Visual assets for diagramming skills
+
+### Recursive Path Rewriting
+Migrated resources are processed recursively. Any text-based files within these resources (e.g., Markdown in the TEA knowledge base) have their internal paths rewritten to be compatible with the new skill structure.
 
 ## Path Rewriting
 
-To make skills portable, path rewriting uses a dynamic map of all discovered skills to accurately resolve references:
+To make skills portable, path rewriting uses a dynamic map of all discovered skills combined with configurable regex patterns:
 
-- **Exact Skill Resolution**: Uses a `skillMap` to resolve paths like `testarch/ci/workflow.yaml` to their correct installed name e.g. `testarch-ci`, ensuring prefixes are handled correctly.
+- **Configurable Patterns**: Custom rewriting rules can be added to `config.json` under `pathPatterns`. These are applied first.
+- **Pattern Optimization**: Regex patterns are pre-compiled once at startup for maximum performance during large conversion runs.
+- **Exact Skill Resolution**: Uses a `skillMap` to resolve paths like `testarch/ci/workflow.yaml` to their correct installed name e.g. `testarch-ci`.
+- **Global Normalization**: Path normalization ensures that both module paths (`src/modules/*`) and core paths (`src/core/*`) are correctly mapping to their destination equivalents.
 - **Skill Root Variable**: Replaces fragile relative paths (`../../`) with `{skill-root}`.
 - **Variable Consolidation**: `{skill-config}` has been merged into `{skill-root}`.
 - **Standardized Paths**:
@@ -100,13 +113,10 @@ To make skills portable, path rewriting uses a dynamic map of all discovered ski
 
 This ensures skills work correctly regardless of where the root `skills` directory is installed and that cross-skill references are robust.
 
-## Module Configuration
+The converter creates `config.yaml` files for each module. The generation logic prioritizes templates from the BMAD repository:
 
-The converter creates `config.yaml` files for each module, matching the BMAD installer behavior:
-
-- `core/config.yaml` - Core module configuration
-- `bmm/config.yaml` - BMM module configuration
-- `bmb/config.yaml` - BMB module configuration (if present)
+1. **BMAD Template**: Checks for `config-template.yaml` within the module directory in the BMAD repo.
+2. **Fallback Defaults**: If no template exists in the repo, hardcoded defaults from `convert.js` are used.
 
 Skills reference these configs using `{skill-root}/{module}/config.yaml`. Users should customize these files for their project settings.
 
@@ -142,6 +152,8 @@ After running the conversion, you'll see:
 
 📥 Fetching BMAD-METHOD repository...
 ✓ Repository ready at: ./.temp/bmad-method
+
+📌 BMAD-METHOD version: 6.0.0-alpha.23
 
 🔍 Discovering agents and workflows...
 ✓ Found 13 agents and 38 workflows

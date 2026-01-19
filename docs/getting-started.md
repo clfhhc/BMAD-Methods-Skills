@@ -91,7 +91,8 @@ This will:
 1. Clone or update the BMAD-METHOD repository (from `config.json`)
 2. Discover all agents and workflows
 3. Convert them to SKILL.md format with default enhancements
-4. Write output to `./skills/` organized by module (version controlled)
+4. Detect BMAD repository version and validate structure
+5. Write output to `./skills/` organized by module (version controlled)
 
 **Default Settings:**
 - Full identity text (no truncation)
@@ -154,9 +155,26 @@ Edit `config.json` to customize:
   "workflowPaths": [
     "src/core/workflows",
     "src/modules/*/workflows"
+  ],
+  "auxiliaryResources": [
+    {
+      "src": "src/modules/bmm/data/documentation-standards.md",
+      "dest": "bmm/tech-writer/data/documentation-standards.md",
+      "name": "Documentation Standards"
+    }
+  ],
+  "pathPatterns": [
+    {
+      "pattern": "\\{project-root\\}/_bmad/core/resources/excalidraw/([^/\\\\s'\\\"]+)",
+      "replacement": "{skill-root}/core/resources/excalidraw/$1",
+      "description": "Excalidraw helper resources"
+    }
   ]
 }
 ```
+
+- **`auxiliaryResources`**: Define extra files or folders to migrate. Supported for recursive path rewriting.
+- **`pathPatterns`**: Custom regex rules for path adaptation. Applied before standard rewriting.
 
 ### Clean Up
 
