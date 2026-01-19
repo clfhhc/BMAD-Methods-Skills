@@ -1,3 +1,10 @@
+## [0.1.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.0...v0.1.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* improve path rewrite with config.json ([#5](https://github.com/clfhhc/BMAD-Methods-Skills/issues/5)) ([5d9b23f](https://github.com/clfhhc/BMAD-Methods-Skills/commit/5d9b23f9edacdaf58c9f3bb88203f44bdaf581b7))
+
 # [0.1.0](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.0.5...v0.1.0) (2026-01-19)
 
 
