@@ -7,14 +7,39 @@ This tool converts BMAD-METHOD (Breakthrough Method for Agile AI-Driven Developm
 - Clones/fetches the latest BMAD-METHOD repository from GitHub
 - Discovers all agents (`.agent.yaml`) and workflows (`workflow.yaml` + `instructions.md`)
 - Converts them to Claude Skills format (`SKILL.md`)
+- Applies path rewriting for portability
 - Organizes output by module (bmm, bmb, cis, core)
 
-## Quick Start (Recommended)
+## Quick Start
 
-For most users, the simplest way to get started is:
+### Option A: One-Liner (Recommended)
+
+The fastest way to get all BMAD skills installed:
 
 ```bash
-# Install the bootstrap skill
+npx @clfhhc/bmad-methods-skills init --tool=[TOOL] --bootstrap
+```
+
+Replace `[TOOL]` with `antigravity`, `cursor`, or `claude`.
+
+This single command:
+1. ✅ Fetches and converts all BMAD agents/workflows
+2. ✅ Applies automatic path rewriting
+3. ✅ Installs skills to your tool's directory
+4. ✅ Generates `config.yaml` for each module (core, bmm, bmb)
+5. ✅ Cleans up temporary files
+
+**After installation**, customize the generated config files at:
+- `{skills-dir}/core/config.yaml` - User preferences
+- `{skills-dir}/bmm/config.yaml` - Project settings
+- `{skills-dir}/bmb/config.yaml` - Custom agent/workflow output
+
+### Option B: AI-Guided Workflow
+
+For an interactive experience with step-by-step guidance:
+
+```bash
+# Install the bootstrap skill first
 npx @clfhhc/bmad-methods-skills init
 
 # Then open your AI tool and type:
@@ -24,10 +49,9 @@ npx @clfhhc/bmad-methods-skills init
 The `BS` command starts an AI-guided workflow that:
 1. Asks which tool you're using (Claude Code, Cursor, Antigravity)
 2. Asks if you want global or project-specific installation
-3. Fetches and converts BMAD skills
-4. Guides you through configuration
+3. Walks you through custom configuration options
 
-> **For automation:** Use `init --bootstrap` to skip prompts and use defaults.
+> **Note**: The `BS` workflow now recommends using `--bootstrap` for the actual installation.
 
 ## Prerequisites
 
@@ -147,3 +171,22 @@ Remove both `skills/` and temporary files (full clean):
 ```bash
 pnpm clean:all
 ```
+
+## CLI Reference
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `npx @clfhhc/bmad-methods-skills` | Run the converter (fetch + convert) |
+| `npx @clfhhc/bmad-methods-skills init` | Install bootstrap skills only |
+| `npx @clfhhc/bmad-methods-skills init --bootstrap` | **Full install**: fetch, convert, and install |
+| `npx @clfhhc/bmad-methods-skills install --from=<path>` | Install from a local directory |
+
+### Init Options
+
+| Option | Description |
+|--------|-------------|
+| `--tool=<name>` | Target tool: `antigravity`, `cursor`, or `claude` |
+| `--bootstrap` | Auto-fetch, convert, and install the full BMAD suite |
+| `--force` | Overwrite existing skills |

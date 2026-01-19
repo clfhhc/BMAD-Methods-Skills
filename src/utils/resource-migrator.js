@@ -1,52 +1,33 @@
 import path from 'node:path';
 import fs from 'fs-extra';
+import { rewriteBmadPaths, shouldRewritePaths } from './path-rewriter.js';
 
 /**
  * Migrates specific data and knowledge resources from BMAD repo to skills output
  * @param {string} bmadRoot - Root of the fetched BMAD repo
  * @param {string} outputDir - Root of the skills output directory
+ * @param {Array} auxiliaryResources - Array of migration definitions from config
  */
-export async function migrateResources(bmadRoot, outputDir) {
+export async function migrateResources(
+  bmadRoot,
+  outputDir,
+  auxiliaryResources = [],
+  pathPatterns = null
+) {
   console.log('📦 Migrating auxiliary resources...');
 
-  const migrations = [
-    {
-      // Tech Writer: documentation-standards.md
-      // From: src/modules/bmm/data/documentation-standards.md
-      // To: bmm/tech-writer/data/documentation-standards.md
-      src: path.join(
-        'src',
-        'modules',
-        'bmm',
-        'data',
-        'documentation-standards.md'
-      ),
-      dest: path.join(
-        'bmm',
-        'tech-writer',
-        'data',
-        'documentation-standards.md'
-      ),
-      name: 'Documentation Standards',
-    },
-    {
-      // TEA: tea-index.csv
-      // From: src/modules/bmm/testarch/tea-index.csv
-      // To: bmm/tea/tea-index.csv
-      src: path.join('src', 'modules', 'bmm', 'testarch', 'tea-index.csv'),
-      dest: path.join('bmm', 'tea', 'tea-index.csv'),
-      name: 'TEA Index',
-    },
-    {
-      // TEA: knowledge directory
-      // From: src/modules/bmm/testarch/knowledge/
-      // To: bmm/tea/knowledge/
-      src: path.join('src', 'modules', 'bmm', 'testarch', 'knowledge'),
-      dest: path.join('bmm', 'tea', 'knowledge'),
-      name: 'TEA Knowledge Base',
-      isDirectory: true,
-    },
-  ];
+  // Use config-provided resources, or empty array if none
+  const migrations = auxiliaryResources.map((res) => ({
+    src: res.src,
+    dest: res.dest,
+    name: res.name,
+    isDirectory: res.isDirectory || false,
+  }));
+
+  if (migrations.length === 0) {
+    console.log('  ⚠️  No auxiliary resources configured in config.json');
+    return;
+  }
 
   let migratedCount = 0;
 
@@ -58,6 +39,10 @@ export async function migrateResources(bmadRoot, outputDir) {
       if (await fs.pathExists(srcPath)) {
         await fs.ensureDir(path.dirname(destPath));
         await fs.copy(srcPath, destPath, { overwrite: true });
+
+        // Post-process: Rewrite paths in migrated files
+        await processMigratedResource(destPath, pathPatterns);
+
         console.log(`  ✓ Migrated ${migration.name}`);
         migratedCount++;
       } else {
@@ -72,13 +57,40 @@ export async function migrateResources(bmadRoot, outputDir) {
     }
   }
 
-  console.log(`  ✓ Migrated ${migratedCount} resources\n`);
+  console.log(`  ✓ Migrated ${migratedCount}/${migrations.length} resources\n`);
   if (migratedCount < migrations.length) {
     console.warn(
-      '  ⚠️  Some resources were not found. This may happen if the BMAD repository structure has changed.'
+      '  ⚠️  Some resources were not found. BMAD repository structure may have changed.'
     );
     console.warn(
-      '      Please check if a newer version of @clfhhc/bmad-methods-skills is available.'
+      '      Update auxiliaryResources in config.json or check for newer version.'
+    );
+  }
+}
+
+/**
+ * Recursively process migrated resources to rewrite paths
+ */
+async function processMigratedResource(resourcePath, pathPatterns) {
+  try {
+    const stat = await fs.stat(resourcePath);
+    if (stat.isDirectory()) {
+      const files = await fs.readdir(resourcePath);
+      for (const file of files) {
+        await processMigratedResource(
+          path.join(resourcePath, file),
+          pathPatterns
+        );
+      }
+    } else if (shouldRewritePaths(resourcePath)) {
+      const content = await fs.readFile(resourcePath, 'utf8');
+
+      const rewritten = rewriteBmadPaths(content, null, pathPatterns);
+      await fs.writeFile(resourcePath, rewritten, 'utf8');
+    }
+  } catch (error) {
+    console.warn(
+      `    ⚠️ Failed to process file ${resourcePath}: ${error.message}`
     );
   }
 }

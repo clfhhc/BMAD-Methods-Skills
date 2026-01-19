@@ -3,9 +3,20 @@
   "bmadBranch": "main",
   "outputDir": "./skills",
   "tempDir": "./.temp/bmad-method",
-  "modules": ["bmm", "bmb", "cis", "core"],
-  "agentPaths": ["src/core/agents", "src/modules/*/agents"],
-  "workflowPaths": ["src/core/workflows", "src/modules/*/workflows"],
+  "modules": [
+    "bmm",
+    "bmb",
+    "cis",
+    "core"
+  ],
+  "agentPaths": [
+    "src/core/agents",
+    "src/modules/*/agents"
+  ],
+  "workflowPaths": [
+    "src/core/workflows",
+    "src/modules/*/workflows"
+  ],
   "enhancements": {
     "optional": {
       "addExamples": true,
@@ -15,5 +26,81 @@
       "generateMetaDocs": false
     },
     "identityCharLimit": null
+  },
+  "auxiliaryResources": [
+    {
+      "src": "src/modules/bmm/data/documentation-standards.md",
+      "dest": "bmm/tech-writer/data/documentation-standards.md",
+      "name": "Documentation Standards"
+    },
+    {
+      "src": "src/modules/bmm/testarch/tea-index.csv",
+      "dest": "bmm/tea/tea-index.csv",
+      "name": "TEA Index"
+    },
+    {
+      "src": "src/modules/bmm/testarch/knowledge",
+      "dest": "bmm/tea/knowledge",
+      "name": "TEA Knowledge Base",
+      "isDirectory": true
+    },
+    {
+      "src": "src/core/resources/excalidraw",
+      "dest": "core/resources/excalidraw",
+      "name": "Excalidraw Resources",
+      "isDirectory": true
+    }
+  ],
+  "pathPatterns": [
+    {
+      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb|cis)/workflows/([^/\\\\s'\"]+)/workflow\\.(yaml|md|xml)",
+      "replacement": "{skill-root}/$1/$2/SKILL.md",
+      "description": "Standard workflow files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb|cis)/config\\.yaml",
+      "replacement": "{skill-root}/$1/config.yaml",
+      "description": "Module config files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/(core|bmm|bmb|cis)/workflows/([^/\\\\s'\"]+)/([^/\\\\s'\"]+\\.(md|csv|yaml|xml))",
+      "replacement": "{skill-root}/$1/$2/$3",
+      "description": "Files within workflow directories"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/_memory/([^/\\\\s'\"]+)",
+      "replacement": "{runtime-memory}/$1",
+      "description": "Runtime memory references"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmb-creations",
+      "replacement": "{output-folder}/bmb-creations",
+      "description": "BMB creations output folder"
+    },
+    {
+      "pattern": "\\{project-root\\}/_data/([^/\\\\s'\"]+)",
+      "replacement": "{project-data}/$1",
+      "description": "Project data files"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/core/resources/excalidraw/([^/\\\\s'\"]+)",
+      "replacement": "{skill-root}/core/resources/excalidraw/$1",
+      "description": "Excalidraw helper resources"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/bmm/testarch/knowledge/",
+      "replacement": "{skill-root}/bmm/tea/knowledge/",
+      "description": "TEA Knowledge Base (migrated)"
+    },
+    {
+      "pattern": "\\{project-root\\}/_bmad/\\.\\.\\./",
+      "replacement": "{skill-root}/.../",
+      "description": "Ellipsis in documentation examples"
+    }
+  ],
+  "expectedBmadStructure": {
+    "agentPattern": "src/*/agents/*.agent.yaml",
+    "workflowPattern": "src/modules/*/workflows/**/workflow.yaml",
+    "versionFile": "package.json"
   }
 }

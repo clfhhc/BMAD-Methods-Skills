@@ -6,20 +6,32 @@
 /**
  * Rewrite BMAD paths in content to relative skill paths
  * @param {string} content - File content to process
- * @param {string} currentModule - Current skill's module (core, bmm, bmb)
+ * @param {Map|null} skillMap - Map of source paths to destination skill info
+ * @param {Array|null} pathPatterns - Array of {pattern, regex, replacement} from config
  * @returns {string} Content with rewritten paths
  */
 export function rewriteBmadPaths(
   content,
-  _currentModule = 'bmm',
-  skillMap = null
+  skillMap = null,
+  pathPatterns = null
 ) {
   let result = content;
 
-  // Calculate relative prefix based on current module
-  // Skills are at: skills/{module}/{skillName}/
   // Use user-defined {skill-root} variable for portability instead of fragile relative paths
   const relativePrefix = '{skill-root}';
+
+  // === CONFIG-DRIVEN PATTERNS (Applied First) ===
+  if (pathPatterns && pathPatterns.length > 0) {
+    for (const item of pathPatterns) {
+      try {
+        // Use pre-compiled regex if available, otherwise compile it
+        const regex = item.regex || new RegExp(item.pattern, 'g');
+        result = result.replace(regex, item.replacement);
+      } catch (e) {
+        console.warn(`⚠️  Invalid path pattern: ${e.message}`);
+      }
+    }
+  }
 
   // === MAP-BASED EXACT REPLACEMENTS (Priority) ===
   if (skillMap) {
