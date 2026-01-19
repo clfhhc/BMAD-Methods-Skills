@@ -10,21 +10,11 @@ skills/
 │   │   └── SKILL.md
 │   ├── pm/
 │   │   └── SKILL.md
-│   ├── prd/
-│   │   └── SKILL.md
-│   ├── create-ux-design/
-│   │   └── SKILL.md
-│   └── ...
-├── bmb/
-│   ├── module/
-│   │   └── SKILL.md
-│   ├── workflow/
-│   │   └── SKILL.md
-│   └── ...
+│   ├── config.yaml          # Project configuration
+│   └── (skills...)          # BMM methodology skills
 ├── core/
-│   ├── advanced-elicitation/
-│   │   └── SKILL.md
-│   └── ...
+│   ├── config.yaml          # Core user settings
+│   └── (skills...)          # Core system skills
 ```
 
 Each skill folder contains:
@@ -74,17 +64,17 @@ The converter automatically handles non-standard resources referenced by skills 
 ### Core Migrations
 
 1. **`documentation-standards.md`**:
-   - Source: `src/modules/bmm/data/documentation-standards.md`
+   - Source: `src/bmm/agents/tech-writer/tech-writer-sidecar/documentation-standards.md`
    - Destination: `bmm/tech-writer/data/documentation-standards.md`
    - Purpose: Critical reference for technical writing skills
 
 2. **TEA Knowledge Base**:
-   - Source: `src/modules/bmm/testarch/knowledge/`
+   - Source: `src/bmm/testarch/knowledge/`
    - Destination: `bmm/tea/knowledge/`
    - Purpose: Extensive testing patterns and practices
 
 3. **TEA Index**:
-   - Source: `src/modules/bmm/testarch/tea-index.csv`
+   - Source: `src/bmm/testarch/tea-index.csv`
    - Destination: `bmm/tea/tea-index.csv`
    - Purpose: Index of testing architecture components
 
@@ -103,7 +93,7 @@ To make skills portable, path rewriting uses a dynamic map of all discovered ski
 - **Configurable Patterns**: Custom rewriting rules can be added to `config.json` under `pathPatterns`. These are applied first.
 - **Pattern Optimization**: Regex patterns are pre-compiled once at startup for maximum performance during large conversion runs.
 - **Exact Skill Resolution**: Uses a `skillMap` to resolve paths like `testarch/ci/workflow.yaml` to their correct installed name e.g. `testarch-ci`.
-- **Global Normalization**: Path normalization ensures that both module paths (`src/modules/*`) and core paths (`src/core/*`) are correctly mapping to their destination equivalents.
+- **Global Normalization**: Path normalization ensures that both module paths (`src/*/`) and core paths (`src/core/*`) are correctly mapping to their destination equivalents.
 - **Skill Root Variable**: Replaces fragile relative paths (`../../`) with `{skill-root}`.
 - **Variable Consolidation**: `{skill-config}` has been merged into `{skill-root}`.
 - **Standardized Paths**:

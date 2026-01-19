@@ -11,7 +11,7 @@ import { writeSkill } from './src/utils/skill-writer.js';
 // Default config templates (fallback if BMAD repo doesn't have templates)
 const DEFAULT_CONFIG_TEMPLATES = {
   core: `# Your name/handle for personalized interactions
-user_name: ''
+user_name: 'BMad'
 
 # Language for AI communication
 communication_language: English
@@ -20,7 +20,7 @@ communication_language: English
 document_output_language: English
 
 # Base output folder for BMAD artifacts
-output_folder: "{project-root}/documents/bmad"
+output_folder: "_bmad-output"
 `,
   bmm: `# Your project name
 project_name: ''
@@ -29,33 +29,24 @@ project_name: ''
 # Affects how agents explain concepts
 user_skill_level: intermediate
 
-# Where to store planning artifacts (Briefs, PRDs, UX Designs, Architecture)
-planning_artifacts: "{project-root}/documents/bmad/planning-artifacts"
+# Where to store planning artifacts
+planning_artifacts: "{output_folder}/planning-artifacts"
 
-# Where to store implementation artifacts (Sprint status, stories, reviews)
-implementation_artifacts: "{project-root}/documents/bmad/implementation-artifacts"
+# Where to store implementation artifacts
+implementation_artifacts: "{output_folder}/implementation-artifacts"
 
 # Where to store long-term project knowledge (docs, research)
-project_knowledge: "{project-root}/docs"
+project_knowledge: "docs"
 
 # TEA (Test Engineering Architect) options
 tea_use_mcp_enhancements: false
 tea_use_playwright_utils: false
 
 # Core Configuration Values (inherited)
-user_name: ''
+user_name: 'BMad'
 communication_language: English
 document_output_language: English
-output_folder: "{project-root}/documents/bmad"
-`,
-  bmb: `# Where to save custom agents, workflows, and modules
-bmb_creations_output_folder: "{project-root}/documents/bmad/bmb-creations"
-
-# Core Configuration Values (inherited)
-user_name: ''
-communication_language: English
-document_output_language: English
-output_folder: "{project-root}/documents/bmad"
+output_folder: "_bmad-output"
 `,
 };
 
@@ -413,8 +404,8 @@ async function main() {
       // Normalize path to match BMAD content conventions
       if (relPath.startsWith('src/modules/')) {
         relPath = relPath.replace('src/modules/', '');
-      } else if (relPath.startsWith('src/core/')) {
-        relPath = relPath.replace('src/core/', 'core/');
+      } else if (relPath.startsWith('src/')) {
+        relPath = relPath.replace('src/', '');
       }
       skillMap.set(relPath, { module: agent.module, name: agent.name });
     }
@@ -424,8 +415,8 @@ async function main() {
       // Normalize path to match BMAD content conventions
       if (relPath.startsWith('src/modules/')) {
         relPath = relPath.replace('src/modules/', '');
-      } else if (relPath.startsWith('src/core/')) {
-        relPath = relPath.replace('src/core/', 'core/');
+      } else if (relPath.startsWith('src/')) {
+        relPath = relPath.replace('src/', '');
       }
       skillMap.set(relPath, { module: workflow.module, name: workflow.name });
     }

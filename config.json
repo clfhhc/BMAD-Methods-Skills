@@ -5,17 +5,13 @@
   "tempDir": "./.temp/bmad-method",
   "modules": [
     "bmm",
-    "bmb",
-    "cis",
     "core"
   ],
   "agentPaths": [
-    "src/core/agents",
-    "src/modules/*/agents"
+    "src/*/agents"
   ],
   "workflowPaths": [
-    "src/core/workflows",
-    "src/modules/*/workflows"
+    "src/*/workflows"
   ],
   "enhancements": {
     "optional": {
@@ -29,17 +25,17 @@
   },
   "auxiliaryResources": [
     {
-      "src": "src/modules/bmm/data/documentation-standards.md",
+      "src": "src/bmm/agents/tech-writer/tech-writer-sidecar/documentation-standards.md",
       "dest": "bmm/tech-writer/data/documentation-standards.md",
       "name": "Documentation Standards"
     },
     {
-      "src": "src/modules/bmm/testarch/tea-index.csv",
+      "src": "src/bmm/testarch/tea-index.csv",
       "dest": "bmm/tea/tea-index.csv",
       "name": "TEA Index"
     },
     {
-      "src": "src/modules/bmm/testarch/knowledge",
+      "src": "src/bmm/testarch/knowledge",
       "dest": "bmm/tea/knowledge",
       "name": "TEA Knowledge Base",
       "isDirectory": true
