@@ -1,7 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'fs-extra';
-import { glob } from 'glob';
 import { convertAgentToSkill } from './src/converters/agent-converter.js';
 import { convertWorkflowToSkill } from './src/converters/workflow-converter.js';
 import { fetchBmadRepo } from './src/utils/bmad-fetcher.js';
@@ -145,8 +144,9 @@ async function generateModuleConfigs(outputDir, bmadRoot = null) {
  * @param {string} bmadRoot - Root of the fetched BMAD repo
  */
 async function detectBmadVersion(bmadRoot) {
-  const versionFile =
-    config.expectedBmadStructure?.versionFile || 'package.json';
+  // Use user config for version file if provided, otherwise default to package.json
+  // Note: expectedBmadStructure is removed, assuming package.json is standard
+  const versionFile = 'package.json';
   const versionPath = path.join(bmadRoot, versionFile);
 
   try {
@@ -154,43 +154,6 @@ async function detectBmadVersion(bmadRoot) {
       const pkgContent = await fs.readFile(versionPath, 'utf8');
       const pkg = JSON.parse(pkgContent);
       console.log(`📌 BMAD-METHOD version: ${pkg.version || 'unknown'}\n`);
-
-      // Validate expected structure patterns
-      // Validate expected structure patterns
-      if (config.expectedBmadStructure) {
-        const { agentPattern, workflowPattern } = config.expectedBmadStructure;
-
-        // Glob check using config patterns
-        let hasAgents = false;
-        let hasWorkflows = false;
-
-        if (agentPattern) {
-          const matches = await glob(path.join(bmadRoot, agentPattern), {
-            ignore: ['node_modules/**'],
-          });
-          hasAgents = matches.length > 0;
-        }
-
-        if (workflowPattern) {
-          const matches = await glob(path.join(bmadRoot, workflowPattern), {
-            ignore: ['node_modules/**'],
-          });
-          hasWorkflows = matches.length > 0;
-        }
-
-        if (!hasAgents || !hasWorkflows) {
-          console.warn('⚠️  BMAD structure mismatch detected:');
-          if (!hasAgents)
-            console.warn(`   - No agents found matching: ${agentPattern}`);
-          if (!hasWorkflows)
-            console.warn(
-              `   - No workflows found matching: ${workflowPattern}`
-            );
-          console.warn(
-            '   Update expectedBmadStructure in config.json if needed.\n'
-          );
-        }
-      }
     }
   } catch (error) {
     console.warn(`⚠️  Could not detect BMAD version: ${error.message}\n`);
@@ -423,6 +386,19 @@ async function main() {
       `✓ Found ${agents.length} agents and ${workflows.length} workflows\n`
     );
 
+    if (agents.length === 0 || workflows.length === 0) {
+      console.warn('⚠️  Possible structure mismatch:');
+      if (agents.length === 0)
+        console.warn('   - No agents found. Check agentPaths in config.json');
+      if (workflows.length === 0)
+        console.warn(
+          '   - No workflows found. Check workflowPaths in config.json'
+        );
+      console.warn('');
+      // Exit with error code to fail CI/CD
+      process.exit(1);
+    }
+
     // Step 3: Prepare output directory
     const outputDir = path.resolve(process.cwd(), config.outputDir);
     await fs.ensureDir(outputDir);
@@ -434,18 +410,22 @@ async function main() {
 
     for (const agent of agents) {
       let relPath = path.relative(bmadRoot, agent.path);
-      // Normalize path to match BMAD content conventions (strip src/modules/)
+      // Normalize path to match BMAD content conventions
       if (relPath.startsWith('src/modules/')) {
         relPath = relPath.replace('src/modules/', '');
+      } else if (relPath.startsWith('src/core/')) {
+        relPath = relPath.replace('src/core/', 'core/');
       }
       skillMap.set(relPath, { module: agent.module, name: agent.name });
     }
 
     for (const workflow of workflows) {
       let relPath = path.relative(bmadRoot, workflow.path);
-      // Normalize path to match BMAD content conventions (strip src/modules/)
+      // Normalize path to match BMAD content conventions
       if (relPath.startsWith('src/modules/')) {
         relPath = relPath.replace('src/modules/', '');
+      } else if (relPath.startsWith('src/core/')) {
+        relPath = relPath.replace('src/core/', 'core/');
       }
       skillMap.set(relPath, { module: workflow.module, name: workflow.name });
     }

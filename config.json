@@ -97,10 +97,5 @@
       "replacement": "{skill-root}/.../",
       "description": "Ellipsis in documentation examples"
     }
-  ],
-  "expectedBmadStructure": {
-    "agentPattern": "src/*/agents/*.agent.yaml",
-    "workflowPattern": "src/modules/*/workflows/**/workflow.yaml",
-    "versionFile": "package.json"
-  }
+  ]
 }
