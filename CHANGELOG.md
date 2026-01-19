@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.1...v0.2.2) (2026-01-19)
+
+
+### Bug Fixes
+
+* extracted more regex ([#9](https://github.com/clfhhc/BMAD-Methods-Skills/issues/9)) ([86970b1](https://github.com/clfhhc/BMAD-Methods-Skills/commit/86970b1f06e053825bed9b5eb017a494b82cf733))
+
 ## [0.2.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.0...v0.2.1) (2026-01-19)
 
 
