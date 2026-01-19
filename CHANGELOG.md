@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.3...v0.2.0) (2026-01-19)
+
+
+### Features
+
+* match updated folder structure ([#7](https://github.com/clfhhc/BMAD-Methods-Skills/issues/7)) ([2049627](https://github.com/clfhhc/BMAD-Methods-Skills/commit/20496272f8959490f8d22052554ee43d5632c4eb))
+
 ## [0.1.3](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.1.2...v0.1.3) (2026-01-19)
 
 
