@@ -1,11 +1,19 @@
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { rewriteBmadPaths } from '../src/utils/path-rewriter.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const config = JSON.parse(
+  readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8')
+);
+const pathPatterns = config.pathPatterns || [];
 
 test('rewriteBmadPaths', async (t) => {
   await t.test('rewrites paths using skillMap (exact match)', () => {
     const skillMap = new Map();
-    // Keys normalized by converter (no src/modules/)
     skillMap.set('bmm/workflows/testarch/ci/workflow.yaml', {
       module: 'bmm',
       name: 'testarch-ci',
@@ -13,7 +21,7 @@ test('rewriteBmadPaths', async (t) => {
 
     const content =
       'path: {project-root}/_bmad/bmm/workflows/testarch/ci/workflow.yaml';
-    const result = rewriteBmadPaths(content, skillMap);
+    const result = rewriteBmadPaths(content, skillMap, pathPatterns);
 
     assert.strictEqual(result, 'path: {skill-root}/bmm/testarch-ci/SKILL.md');
   });
@@ -26,29 +34,24 @@ test('rewriteBmadPaths', async (t) => {
     });
 
     const content = 'dir: {project-root}/_bmad/bmm/workflows/testarch/ci';
-    const result = rewriteBmadPaths(content, skillMap);
+    const result = rewriteBmadPaths(content, skillMap, pathPatterns);
 
-    // Directory should map to skill root
     assert.strictEqual(result, 'dir: {skill-root}/bmm/testarch-ci');
   });
 
-  await t.test('falls back to regex for unknown paths', () => {
+  await t.test('falls back to config pathPatterns for unknown paths', () => {
     const skillMap = new Map();
-    // No entry for this path
-
     const content =
       'path: {project-root}/_bmad/bmm/workflows/some-new-flow/workflow.yaml';
-    const result = rewriteBmadPaths(content, skillMap);
+    const result = rewriteBmadPaths(content, skillMap, pathPatterns);
 
-    // Should fallback to legacy regex: bmm/some-new-flow/SKILL.md
     assert.strictEqual(result, 'path: {skill-root}/bmm/some-new-flow/SKILL.md');
   });
 
-  await t.test('replaces variable placeholders', () => {
+  await t.test('replaces variable placeholders via pathPatterns', () => {
     const content = 'conf: {project-root}/_bmad/bmm/config.yaml';
-    const result = rewriteBmadPaths(content);
+    const result = rewriteBmadPaths(content, null, pathPatterns);
 
-    // {skill-config} was consolidated to {skill-root}
     assert.strictEqual(result, 'conf: {skill-root}/bmm/config.yaml');
   });
 });

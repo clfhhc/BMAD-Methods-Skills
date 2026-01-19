@@ -90,6 +90,5 @@ Reference for detecting and transforming path patterns in BMAD-converted skills.
 | BMAD Module | Skills Location | Notes |
 |-------------|-----------------|-------|
 | `bmm` | `skills/bmm/` | Main method modules |
-| `bmb` | `skills/bmb/` | Builder modules |
 | `core` | `skills/core/` | Core workflows |
 | `cis` | N/A | Not converted - reference as external |

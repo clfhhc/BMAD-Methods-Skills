@@ -53,7 +53,7 @@ output_folder: "_bmad-output"
 /**
  * Get module-specific config content
  * Checks BMAD repo for config-template.yaml first, falls back to defaults
- * @param {string} moduleName - Module name (core, bmm, bmb)
+ * @param {string} moduleName - Module name (core, bmm)
  * @param {string|null} bmadRoot - Optional path to BMAD repo for template lookup
  * @returns {Promise<string>} YAML config content
  */
@@ -438,6 +438,7 @@ async function main() {
           await writeSkill(outputDir, agent.module, agent.name, skillContent, {
             skillMap,
             pathPatterns: config.pathPatterns,
+            skillMapOptions: config.skillMap || {},
           });
           stats.agents.converted++;
           console.log(`  ✓ ${agent.module}/${agent.name}`);
@@ -482,6 +483,7 @@ async function main() {
               workflowDir: workflow.workflowDir,
               skillMap,
               pathPatterns: config.pathPatterns,
+              skillMapOptions: config.skillMap || {},
             }
           );
           stats.workflows.converted++;

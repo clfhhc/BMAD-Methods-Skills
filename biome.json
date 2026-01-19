@@ -14,8 +14,7 @@
       "!**/.temp",
       "!**/package.json",
       "!**/pnpm-lock.yaml",
-      "!**/CHANGELOG.md",
-      "!**/config.json"
+      "!**/CHANGELOG.md"
     ]
   },
   "formatter": {
