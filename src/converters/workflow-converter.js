@@ -16,7 +16,7 @@ export async function convertWorkflowToSkill(
   workflowPath,
   instructionsPath,
   workflowDir,
-  instructionsType = null,
+  _instructionsType = null,
   options = {}
 ) {
   const { isMarkdown, bmadRoot, bmadRepo, bmadBranch } = {
@@ -67,8 +67,10 @@ export async function convertWorkflowToSkill(
         // The markdown content IS the instructions
         // Normalize headings to ensure hierarchy fits under "## Instructions"
         // Downgrade all headings: # -> ###, ## -> ####
-        instructionsContent =
-          parseInstructions(markdownContent).replace(/^(#+)/gm, '##$1');
+        instructionsContent = parseInstructions(markdownContent).replace(
+          /^(#+)/gm,
+          '##$1'
+        );
       } else {
         // No frontmatter, treat entire file as instructions
         // Try to extract basic metadata from filename or use defaults

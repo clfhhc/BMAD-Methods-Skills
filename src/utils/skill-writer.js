@@ -47,19 +47,23 @@ export async function writeSkill(
     await fs.ensureDir(skillDir);
 
     // Rewrite BMAD paths in SKILL.md content
-    const rewrittenContent = rewriteBmadPaths(skillContent, module);
+    const rewrittenContent = rewriteBmadPaths(
+      skillContent,
+      module,
+      options.skillMap
+    );
 
     // Write SKILL.md
     const skillPath = path.join(skillDir, 'SKILL.md');
     await fs.writeFile(skillPath, rewrittenContent, 'utf-8');
 
-    // Copy entire workflow directory contents (excluding workflow.* files)
     if (options.workflowDir) {
       try {
         await copyDirectoryWithPathRewrite(
           options.workflowDir,
           skillDir,
-          module
+          module,
+          options.skillMap
         );
       } catch (copyError) {
         console.warn(
@@ -82,7 +86,7 @@ export async function writeSkill(
 /**
  * Recursively copy a directory, rewriting BMAD paths in text files
  */
-async function copyDirectoryWithPathRewrite(srcDir, destDir, module) {
+async function copyDirectoryWithPathRewrite(srcDir, destDir, module, skillMap) {
   const entries = await fs.readdir(srcDir, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -100,9 +104,7 @@ async function copyDirectoryWithPathRewrite(srcDir, destDir, module) {
         const subFiles = await fs.readdir(srcPath);
         const isNestedWorkflow = subFiles.some(
           (f) =>
-            f === 'workflow.yaml' ||
-            f === 'workflow.md' ||
-            f === 'workflow.xml'
+            f === 'workflow.yaml' || f === 'workflow.md' || f === 'workflow.xml'
         );
 
         if (isNestedWorkflow) {
@@ -113,11 +115,12 @@ async function copyDirectoryWithPathRewrite(srcDir, destDir, module) {
       }
 
       await fs.ensureDir(destPath);
-      await copyDirectoryWithPathRewrite(srcPath, destPath, module);
+      await fs.ensureDir(destPath);
+      await copyDirectoryWithPathRewrite(srcPath, destPath, module, skillMap);
     } else if (shouldRewritePaths(entry.name)) {
       // Read, rewrite paths, and write text files
       const content = await fs.readFile(srcPath, 'utf-8');
-      const rewrittenContent = rewriteBmadPaths(content, module);
+      const rewrittenContent = rewriteBmadPaths(content, module, skillMap);
       await fs.writeFile(destPath, rewrittenContent, 'utf-8');
     } else {
       // Copy binary/other files as-is

@@ -9,13 +9,73 @@
  * @param {string} currentModule - Current skill's module (core, bmm, bmb)
  * @returns {string} Content with rewritten paths
  */
-export function rewriteBmadPaths(content, _currentModule = 'bmm') {
+export function rewriteBmadPaths(
+  content,
+  _currentModule = 'bmm',
+  skillMap = null
+) {
   let result = content;
 
   // Calculate relative prefix based on current module
   // Skills are at: skills/{module}/{skillName}/
-  // To reference another skill: ../../{otherModule}/{otherSkillName}/
-  const relativePrefix = '../..';
+  // Use user-defined {skill-root} variable for portability instead of fragile relative paths
+  const relativePrefix = '{skill-root}';
+
+  // === MAP-BASED EXACT REPLACEMENTS (Priority) ===
+  if (skillMap) {
+    const dirMap = new Map();
+
+    // 1. Rewrite Workflow Files
+    for (const [srcPath, { module, name }] of skillMap.entries()) {
+      // Create directory mapping while we're here
+      // srcPath is e.g. "bmm/workflows/testarch/ci/workflow.yaml"
+      const srcDir = srcPath.substring(0, srcPath.lastIndexOf('/'));
+      dirMap.set(srcDir, { module, name });
+
+      // Replace file reference
+      // Pattern: {project-root}/_bmad/{srcPath}
+      // srcPath is now normalized by convert.js
+      const escapedPath = srcPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\{project-root\\}/_bmad/${escapedPath}`, 'g');
+      result = result.replace(
+        regex,
+        `${relativePrefix}/${module}/${name}/SKILL.md`
+      );
+    }
+
+    // 2. Rewrite Workflow Directories
+    // Sort by length specific to generic to avoid partial matches
+    const sortedDirs = Array.from(dirMap.keys()).sort(
+      (a, b) => b.length - a.length
+    );
+
+    for (const srcDir of sortedDirs) {
+      const { module, name } = dirMap.get(srcDir);
+      const escapedDir = srcDir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Look for directory path not followed by / (to avoid replacing parents of nested files that weren't caught?)
+      // Actually, if we replaced files first, the only things left starting with this dir are directory references or other files.
+      const regex = new RegExp(
+        `\\{project-root\\}/_bmad/${escapedDir}(?=['\\s\`]|$)`,
+        'g'
+      );
+      result = result.replace(regex, `${relativePrefix}/${module}/${name}`);
+    }
+  }
+
+  // === SPECIFIC EXCEPTIONS (Must run before generic patterns) ===
+
+  // Rewrite init nested workflow references
+  // Must run BEFORE workflow-status directory rewrite
+  result = result.replace(
+    /\{project-root\}\/_bmad\/bmm\/workflows\/workflow-status\/init\/workflow\.(yaml|md)/g,
+    `${relativePrefix}/bmm/init/SKILL.md`
+  );
+
+  // Rewrite document-project workflow references
+  result = result.replace(
+    /\{project-root\}\/_bmad\/bmm\/workflows\/document-project\/workflows/g,
+    `${relativePrefix}/bmm/document-project`
+  );
 
   // Rewrite core workflow references
   // {project-root}/_bmad/core/workflows/{name}/workflow.* -> ../../core/{name}/SKILL.md
@@ -42,7 +102,7 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
   // Rewrite testarch workflow references (bmm/testarch/{name}/workflow.* or bmm/workflows/testarch/...)
   result = result.replace(
     /\{project-root\}\/_bmad\/bmm\/(?:workflows\/)?testarch\/([^/\s'"]+)\/workflow\.(yaml|md|xml)/g,
-    `${relativePrefix}/bmm/$1/SKILL.md`
+    `${relativePrefix}/bmm/testarch-$1/SKILL.md`
   );
 
   // Rewrite excalidraw-diagrams workflow references
@@ -107,7 +167,7 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
   // Rewrite testarch directory references
   result = result.replace(
     /\{project-root\}\/_bmad\/bmm\/workflows\/testarch\/([^/\s'"]+)(?=['\s`])/g,
-    `${relativePrefix}/bmm/$1`
+    `${relativePrefix}/bmm/testarch-$1`
   );
 
   // Rewrite workflow-status directory references
@@ -116,30 +176,17 @@ export function rewriteBmadPaths(content, _currentModule = 'bmm') {
     `${relativePrefix}/bmm/workflow-status`
   );
 
-  // Rewrite init nested workflow references
-  result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/workflow-status\/init\/workflow\.(yaml|md)/g,
-    `${relativePrefix}/bmm/init/SKILL.md`
-  );
-
-  // Rewrite document-project workflow references
-  result = result.replace(
-    /\{project-root\}\/_bmad\/bmm\/workflows\/document-project\/workflows/g,
-    `${relativePrefix}/bmm/document-project`
-  );
-
   // Rewrite config.yaml references (module-level config)
-  // {project-root}/_bmad/{module}/config.yaml -> config paths may not exist, leave as placeholder
-  // These are runtime config files, mark them clearly
+  // {project-root}/_bmad/{module}/config.yaml -> {skill-root}/{module}/config.yaml
   result = result.replace(
     /\{project-root\}\/_bmad\/(bmm|bmb|core)\/config\.yaml/g,
-    '{skill-config}/$1/config.yaml'
+    '{skill-root}/$1/config.yaml'
   );
 
   // Rewrite agent manifest references
   result = result.replace(
     /\{project-root\}\/_bmad\/_config\/agent-manifest\.csv/g,
-    '{skill-config}/agent-manifest.csv'
+    '{skill-root}/agent-manifest.csv'
   );
 
   // Rewrite testarch tea-index.csv references

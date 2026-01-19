@@ -225,6 +225,28 @@ async function main() {
     await fs.ensureDir(outputDir);
     console.log(`📁 Output directory: ${outputDir}\n`);
 
+    // Step 3.5: Build skillMap for path rewriting
+    // Maps source file paths (relative to bmadRoot) to destination skill paths
+    const skillMap = new Map();
+
+    for (const agent of agents) {
+      let relPath = path.relative(bmadRoot, agent.path);
+      // Normalize path to match BMAD content conventions (strip src/modules/)
+      if (relPath.startsWith('src/modules/')) {
+        relPath = relPath.replace('src/modules/', '');
+      }
+      skillMap.set(relPath, { module: agent.module, name: agent.name });
+    }
+
+    for (const workflow of workflows) {
+      let relPath = path.relative(bmadRoot, workflow.path);
+      // Normalize path to match BMAD content conventions (strip src/modules/)
+      if (relPath.startsWith('src/modules/')) {
+        relPath = relPath.replace('src/modules/', '');
+      }
+      skillMap.set(relPath, { module: workflow.module, name: workflow.name });
+    }
+
     // Step 4: Convert agents
     if (agents.length > 0) {
       console.log('🤖 Converting agents...');
@@ -239,7 +261,9 @@ async function main() {
             ...agentOptions,
             currentModule: agent.module,
           });
-          await writeSkill(outputDir, agent.module, agent.name, skillContent);
+          await writeSkill(outputDir, agent.module, agent.name, skillContent, {
+            skillMap,
+          });
           stats.agents.converted++;
           console.log(`  ✓ ${agent.module}/${agent.name}`);
         } catch (error) {
@@ -279,7 +303,10 @@ async function main() {
             workflow.module,
             workflow.name,
             skillContent,
-            { workflowDir: workflow.workflowDir }
+            {
+              workflowDir: workflow.workflowDir,
+              skillMap,
+            }
           );
           stats.workflows.converted++;
           console.log(`  ✓ ${workflow.module}/${workflow.name}`);

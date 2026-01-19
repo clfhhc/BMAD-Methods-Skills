@@ -88,14 +88,17 @@ The converter automatically handles non-standard resources that are referenced b
 
 ## Path Rewriting
 
-To make skills portable, absolute BMAD paths (`{project-root}/_bmad/...`) are rewritten to relative skill paths:
+To make skills portable, path rewriting uses a dynamic map of all discovered skills to accurately resolve references:
 
-- **Cross-Skill References**: `../../{module}/{skill}/SKILL.md`
-- **Internal Resources**: `../../{module}/{skill}/data/...`
-- **Template Placeholders**: `{module-code}`, `{module-id}`, `[module]` patterns are preserved or adapted
-- **Migrated Resources**: Paths to migrated files (like `documentation-standards.md`) are updated to their new locations
+- **Exact Skill Resolution**: Uses a `skillMap` to resolve paths like `testarch/ci/workflow.yaml` to their correct installed name e.g. `testarch-ci`, ensuring prefixes are handled correctly.
+- **Skill Root Variable**: Replaces fragile relative paths (`../../`) with `{skill-root}`.
+- **Variable Consolidation**: `{skill-config}` has been merged into `{skill-root}`.
+- **Standardized Paths**:
+  - Cross-Skill: `{skill-root}/{module}/{skill}/SKILL.md`
+  - Resources: `{skill-root}/{module}/{skill}/data/...`
+- **Migrated Resources**: Paths to migrated files are updated to their new locations.
 
-This ensures skills work correctly regardless of where the root `skills` directory is installed.
+This ensures skills work correctly regardless of where the root `skills` directory is installed and that cross-skill references are robust.
 
 ## Error Handling
 
@@ -118,34 +121,37 @@ After running the conversion, you'll see:
 ✓ Repository ready at: ./.temp/bmad-method
 
 🔍 Discovering agents and workflows...
-✓ Found 12 agents and 34 workflows
+✓ Found 13 agents and 38 workflows
 
 📁 Output directory: ./skills
 
 🤖 Converting agents...
-  ✓ bmm/analyst
-  ✓ bmm/pm
-  ✓ bmm/architect
+  ✓ core/bmad-master
+  ✓ bmm/ux-designer
+  ✓ bmm/tech-writer
+  ✓ bmm/tea
   ...
 
 ⚙️  Converting workflows...
-  ✓ bmm/product-brief
-  ✓ bmm/prd
-  ✓ bmm/architecture
+  ✓ core/brainstorming
+  ✓ core/party-mode
+  ✓ bmm/workflow-status
+  ✓ bmm/document-project
+  ✓ bmm/workflow-init
+  ✓ bmm/testarch-trace
+  ✓ bmm/testarch-test-design
+  ✓ bmm/testarch-test-review
+  ✓ bmm/testarch-ci
+  ✓ bmm/testarch-nfr
+  ✓ bmm/testarch-atdd
+  ✓ bmm/testarch-automate
+  ✓ bmm/testarch-framework
   ...
 
-📊 Conversion Summary
+Stats:
+  Agents: 13
+  Workflows: 38
 
-Agents:
-  Total: 12
-  Converted: 12
-  Errors: 0
-
-Workflows:
-  Total: 34
-  Converted: 34
-  Errors: 0
-
-✅ Successfully converted 46 skills
+✅ Successfully converted 51 skills
 📁 Output directory: ./skills
 ```
