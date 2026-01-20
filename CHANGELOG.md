@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.3.1...v0.3.2) (2026-01-20)
+
+
+### Bug Fixes
+
+* consolidate path sanitization ([#13](https://github.com/clfhhc/BMAD-Methods-Skills/issues/13)) ([2534275](https://github.com/clfhhc/BMAD-Methods-Skills/commit/25342754623be0d8f967fbbe8387d98acb75a2df))
+
 ## [0.3.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.3.0...v0.3.1) (2026-01-20)
 
 
