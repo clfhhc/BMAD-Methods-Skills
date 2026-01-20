@@ -8,7 +8,7 @@
  * @param {string} content - File content to process
  * @param {Map|null} skillMap - Map of source paths to destination skill info
  * @param {Array|null} pathPatterns - Array of {pattern, replacement, description?} from config.json pathPatterns (source of truth for all regex rewrites)
- * @param {Object} [skillMapOptions] - From config.json skillMap: { sourcePrefix, dirLookahead, replacementPrefix } for the dynamic skillMap block
+ * @param {Object} [skillMapOptions] - From config.json skillMap: { sourcePrefix, dirLookahead, replacementPrefix, outputStructure? }. outputStructure defaults to 'flat'.
  * @returns {string} Content with rewritten paths
  */
 export function rewriteBmadPaths(
@@ -20,9 +20,10 @@ export function rewriteBmadPaths(
   let result = content;
 
   const opts = skillMapOptions || {};
-  const sourcePrefix = opts.sourcePrefix ?? '\\{project-root\\}/_bmad/';
-  const dirLookahead = opts.dirLookahead ?? "(?=['\\s`]|$)";
-  const replacementPrefix = opts.replacementPrefix ?? '{skill-root}';
+  const sourcePrefix = opts.sourcePrefix;
+  const dirLookahead = opts.dirLookahead;
+  const replacementPrefix = opts.replacementPrefix;
+  const outputStructure = opts.outputStructure ?? 'flat';
 
   // === CONFIG-DRIVEN PATTERNS (Applied First) ===
   if (pathPatterns && pathPatterns.length > 0) {
@@ -38,7 +39,13 @@ export function rewriteBmadPaths(
   }
 
   // === MAP-BASED EXACT REPLACEMENTS (Priority) ===
-  if (skillMap) {
+  // Requires sourcePrefix, dirLookahead, replacementPrefix from config.skillMap
+  if (
+    skillMap &&
+    sourcePrefix != null &&
+    dirLookahead != null &&
+    replacementPrefix != null
+  ) {
     const dirMap = new Map();
 
     // 1. Rewrite Workflow Files
@@ -53,10 +60,11 @@ export function rewriteBmadPaths(
       // srcPath is now normalized by convert.js
       const escapedPath = srcPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`${sourcePrefix}${escapedPath}`, 'g');
-      result = result.replace(
-        regex,
-        `${replacementPrefix}/${module}/${name}/SKILL.md`
-      );
+      const fileReplacement =
+        outputStructure === 'flat'
+          ? `${replacementPrefix}/${module}-${name}/SKILL.md`
+          : `${replacementPrefix}/${module}/${name}/SKILL.md`;
+      result = result.replace(regex, fileReplacement);
     }
 
     // 2. Rewrite Workflow Directories
@@ -72,7 +80,11 @@ export function rewriteBmadPaths(
         `${sourcePrefix}${escapedDir}${dirLookahead}`,
         'g'
       );
-      result = result.replace(regex, `${replacementPrefix}/${module}/${name}`);
+      const dirReplacement =
+        outputStructure === 'flat'
+          ? `${replacementPrefix}/${module}-${name}`
+          : `${replacementPrefix}/${module}/${name}`;
+      result = result.replace(regex, dirReplacement);
     }
   }
 
