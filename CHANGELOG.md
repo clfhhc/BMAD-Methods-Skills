@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.3...v0.3.0) (2026-01-20)
+
+
+### Features
+
+* flatten folder structure ([#11](https://github.com/clfhhc/BMAD-Methods-Skills/issues/11)) ([a6c6e48](https://github.com/clfhhc/BMAD-Methods-Skills/commit/a6c6e48fca090eed7f7fec06ea85e7cf48ec9533))
+
 ## [0.2.3](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.2...v0.2.3) (2026-01-19)
 
 
