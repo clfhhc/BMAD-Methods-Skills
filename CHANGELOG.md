@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.3.0...v0.3.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* fix lint and add tests ([aa65d81](https://github.com/clfhhc/BMAD-Methods-Skills/commit/aa65d8151467b4aad35d8a67b94f63825b6fae03))
+
 # [0.3.0](https://github.com/clfhhc/BMAD-Methods-Skills/compare/v0.2.3...v0.3.0) (2026-01-20)
 
 
