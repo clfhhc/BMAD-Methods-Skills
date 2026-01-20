@@ -1,3 +1,5 @@
+import { sanitizeSkillName } from './sanitizer.js';
+
 /**
  * Rewrites BMAD installation paths to relative skill paths
  * Converts {project-root}/_bmad/... references to relative skill paths
@@ -22,6 +24,7 @@ export function rewriteBmadPaths(
   const opts = skillMapOptions || {};
   const sourcePrefix = opts.sourcePrefix;
   const dirLookahead = opts.dirLookahead;
+  const fileLookahead = opts.fileLookahead;
   const replacementPrefix = opts.replacementPrefix;
   const outputStructure = opts.outputStructure ?? 'flat';
 
@@ -50,20 +53,32 @@ export function rewriteBmadPaths(
 
     // 1. Rewrite Workflow Files
     for (const [srcPath, { module, name }] of skillMap.entries()) {
+      const sanitizedName = sanitizeSkillName(name);
+      const sanitizedModule = sanitizeSkillName(module);
+
       // Create directory mapping while we're here
       // srcPath is e.g. "bmm/workflows/testarch/ci/workflow.yaml"
       const srcDir = srcPath.substring(0, srcPath.lastIndexOf('/'));
-      dirMap.set(srcDir, { module, name });
+      dirMap.set(srcDir, { module: sanitizedModule, name: sanitizedName });
 
       // Replace file reference
       // Pattern: {project-root}/_bmad/{srcPath}
       // srcPath is now normalized by convert.js
-      const escapedPath = srcPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`${sourcePrefix}${escapedPath}`, 'g');
+      const escapedPathRegex =
+        // biome-ignore lint/suspicious/noTemplateCurlyInString: the curly braces are in regex
+        opts.escapedPathRegex || '[.*+?^${}()|[\\]\\\\]';
+      const escapedPath = srcPath.replace(
+        new RegExp(escapedPathRegex, 'g'),
+        '\\$&'
+      );
+      const regex = new RegExp(
+        `${sourcePrefix}${escapedPath}${fileLookahead || ''}`,
+        'g'
+      );
       const fileReplacement =
         outputStructure === 'flat'
-          ? `${replacementPrefix}/${module}-${name}/SKILL.md`
-          : `${replacementPrefix}/${module}/${name}/SKILL.md`;
+          ? `${replacementPrefix}/${sanitizedModule}-${sanitizedName}/SKILL.md`
+          : `${replacementPrefix}/${sanitizedModule}/${sanitizedName}/SKILL.md`;
       result = result.replace(regex, fileReplacement);
     }
 
@@ -74,16 +89,23 @@ export function rewriteBmadPaths(
     );
 
     for (const srcDir of sortedDirs) {
-      const { module, name } = dirMap.get(srcDir);
-      const escapedDir = srcDir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const { module: sanitizedModule, name: sanitizedName } =
+        dirMap.get(srcDir);
+      const escapedPathRegex =
+        // biome-ignore lint/suspicious/noTemplateCurlyInString: the curly braces are in regex
+        opts.escapedPathRegex || '[.*+?^${}()|[\\]\\\\]';
+      const escapedDir = srcDir.replace(
+        new RegExp(escapedPathRegex, 'g'),
+        '\\$&'
+      );
       const regex = new RegExp(
         `${sourcePrefix}${escapedDir}${dirLookahead}`,
         'g'
       );
       const dirReplacement =
         outputStructure === 'flat'
-          ? `${replacementPrefix}/${module}-${name}`
-          : `${replacementPrefix}/${module}/${name}`;
+          ? `${replacementPrefix}/${sanitizedModule}-${sanitizedName}`
+          : `${replacementPrefix}/${sanitizedModule}/${sanitizedName}`;
       result = result.replace(regex, dirReplacement);
     }
   }

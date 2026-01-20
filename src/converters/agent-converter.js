@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
+import { sanitizeSkillName } from '../utils/sanitizer.js';
 
 /**
  * Converts a BMAD agent.yaml file to Claude Skills SKILL.md format
@@ -43,7 +44,9 @@ export async function convertAgentToSkill(agentPath, options = {}) {
     const startupMessage = agentData.startup_message || '';
 
     // Extract and sanitize name
-    const name = sanitizeName(metadata.id || metadata.name || 'unknown-agent');
+    const name = sanitizeSkillName(
+      metadata.id || metadata.name || 'unknown-agent'
+    );
 
     // Build description from role and identity
     const role = persona.role || 'Agent';
@@ -75,25 +78,13 @@ export async function convertAgentToSkill(agentPath, options = {}) {
       allAgents: options.allAgents || [],
       allWorkflows: options.allWorkflows || [],
       currentModule: options.currentModule || null,
+      parsingPatterns: options.parsingPatterns || {},
     });
 
     return skillContent;
   } catch (error) {
     throw new Error(`Failed to convert agent ${agentPath}: ${error.message}`);
   }
-}
-
-/**
- * Sanitizes a name for use in SKILL.md frontmatter
- * @param {string} name - Original name
- * @returns {string} Sanitized name
- */
-function sanitizeName(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
 }
 
 /**
@@ -110,6 +101,7 @@ function buildAgentSkillContent({
   allAgents,
   allWorkflows,
   currentModule,
+  parsingPatterns = {},
 }) {
   const displayName = metadata.name || metadata.title || name;
   const role = persona.role || 'Agent';
@@ -121,11 +113,19 @@ function buildAgentSkillContent({
     principles = principlesRaw;
   } else if (typeof principlesRaw === 'string') {
     // Parse multiline string format: extract lines starting with "-"
+    const principleLineRegex =
+      parsingPatterns.principleLineRegex || '^-\\s*[\'"]?';
+    const principleTrailingQuoteRegex =
+      parsingPatterns.principleTrailingQuoteRegex || '[\'"]\\s*$';
     principles = principlesRaw
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && line.startsWith('-'))
-      .map((line) => line.replace(/^-\s*['"]?/, '').replace(/['"]\s*$/, ''));
+      .map((line) =>
+        line
+          .replace(new RegExp(principleLineRegex), '')
+          .replace(new RegExp(principleTrailingQuoteRegex), '')
+      );
   }
   const communicationStyle = persona.communication_style || '';
 
@@ -189,7 +189,7 @@ ${menu
     const desc = item.description || 'No description';
     // Format command with better structure
     const commandCode = `\`${trigger}\``;
-    return `- **${commandCode}** or fuzzy match on \`${trigger.toLowerCase().replace(/\s+/g, '-')}\` - ${desc}`;
+    return `- **${commandCode}** or fuzzy match on \`${trigger.toLowerCase().replace(new RegExp(parsingPatterns.triggerSanitizationRegex || '\\s+', 'g'), '-')}\` - ${desc}`;
   })
   .join('\n')}`;
   }
@@ -210,24 +210,34 @@ ${menu
       const trigger = item.trigger || 'unknown';
       const desc = item.description || 'No description';
       // Extract workflow code from description if it references a workflow (e.g., [WS])
-      const workflowMatch = desc.match(/\[(\w+)\]/);
+      const workflowCodeRegex =
+        parsingPatterns.workflowCodeRegex || '\\[(\\w+)\\]';
+      const workflowMatch = desc.match(new RegExp(workflowCodeRegex));
       const workflowCode = workflowMatch ? workflowMatch[1] : null;
 
       // Extract just the short code (e.g., "WS" from "WS or fuzzy match on workflow-status")
-      const shortCode = trigger.split(/\s+/)[0];
+      const shortCode = trigger.split(
+        new RegExp(parsingPatterns.triggerSanitizationRegex || '\\s+')
+      )[0];
 
       // Try to find the workflow
       let workflow = null;
       if (workflowCode) {
+        const hyphenRegex = parsingPatterns.hyphenRegex || '-';
+        const underscoreRegex = parsingPatterns.underscoreRegex || '_';
         workflow = allWorkflows.find(
           (w) =>
-            w.name.toLowerCase().replace(/-/g, '') ===
-            workflowCode.toLowerCase().replace(/_/g, '')
+            w.name.toLowerCase().replace(new RegExp(hyphenRegex, 'g'), '') ===
+            workflowCode
+              .toLowerCase()
+              .replace(new RegExp(underscoreRegex, 'g'), '')
         );
       }
 
       // Build a concise example - just description and code, no redundancy
-      const cleanDesc = desc.replace(/\[(\w+)\]\s*/, '').trim();
+      const cleanDesc = desc
+        .replace(new RegExp(`${workflowCodeRegex}\\s*`), '')
+        .trim();
       content += `\n\n**${cleanDesc}**`;
 
       if (workflow) {
@@ -247,12 +257,21 @@ ${menu
   for (const item of menu) {
     const desc = item.description || '';
     // Look for workflow references in format [WS], [BP], etc.
-    const workflowCodes = desc.match(/\[(\w+)\]/g) || [];
+    const workflowCodeRegex =
+      parsingPatterns.workflowCodeRegex || '\\[(\\w+)\\]';
+    const workflowCodes = desc.match(new RegExp(workflowCodeRegex, 'g')) || [];
     for (const code of workflowCodes) {
-      const codeName = code.replace(/[[\]]/g, '').toLowerCase();
+      const bracketRemovalRegex =
+        parsingPatterns.bracketRemovalRegex || '[[\\]]';
+      const codeName = code
+        .replace(new RegExp(bracketRemovalRegex, 'g'), '')
+        .toLowerCase();
       // Try to match workflow names
       const matchingWorkflow = allWorkflows.find((w) => {
-        const wName = w.name.toLowerCase().replace(/-/g, '');
+        const hyphenRegex = parsingPatterns.hyphenRegex || '-';
+        const wName = w.name
+          .toLowerCase()
+          .replace(new RegExp(hyphenRegex, 'g'), '');
         return (
           wName.includes(codeName) || codeName.includes(wName.substring(0, 2))
         );

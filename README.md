@@ -17,12 +17,12 @@ pnpm dlx @clfhhc/bmad-methods-skills init
 
 This installs `bootstrap-bmad-skills` and `enhance-bmad-skills`. Then open your AI tool and use the **`BS`** command to start the guided installation workflow.
 
-> **Note:** For fully automated installation without prompts, run the conversion and installation commands together:
-> ```bash
-> npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills && \
-> npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --force && \
-> rm -rf .temp
-> ```
+> **Note:** For fully automated installation without prompts, run the conversion and installation commands together (and cleanup):
+```bash
+npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills && \
+npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --force && \
+rm -rf .temp
+```
 
 ## What It Does
 
