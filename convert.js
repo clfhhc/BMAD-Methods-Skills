@@ -508,9 +508,6 @@ async function main() {
             {
               ...workflowOptions,
               isMarkdown: workflow.isMarkdown || false,
-              bmadRoot,
-              bmadRepo: config.bmadRepo,
-              bmadBranch: config.bmadBranch,
             }
           );
           await writeSkill(

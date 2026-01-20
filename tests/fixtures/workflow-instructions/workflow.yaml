@@ -1,0 +1,3 @@
+name: Test Workflow
+description: Minimal workflow for converter tests
+standalone: true

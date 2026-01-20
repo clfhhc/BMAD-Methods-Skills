@@ -23,7 +23,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node tests/path-rewriter.test.js",
+    "test": "node --test tests/path-rewriter.test.js tests/workflow-converter.test.js",
     "convert": "node convert.js",
     "clean": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./.temp'); console.log('Cleaned temp directory'); } catch(e) { console.error('Error:', e.message); } })\"",
     "clean:all": "node -e \"import('fs-extra').then(fs => { try { fs.removeSync('./skills'); fs.removeSync('./.temp'); console.log('Cleaned skills and temp directories'); } catch(e) { console.error('Error:', e.message); } })\"",

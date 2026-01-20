@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import path from 'node:path';
 import os from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'fs-extra';
 
@@ -108,9 +108,14 @@ async function init(args) {
     // We filter out init-specific args to avoid confusion, but keep repo/branch overrides
     const convertArgs = args.filter(
       (a) =>
-        !['init', '--bootstrap', '--force', '--tool', '--scope', '--global'].some(
-          (x) => a === x || a.startsWith(x + '=')
-        )
+        ![
+          'init',
+          '--bootstrap',
+          '--force',
+          '--tool',
+          '--scope',
+          '--global',
+        ].some((x) => a === x || a.startsWith(`${x}=`))
     );
 
     // Temporarily override argv for the imported module
@@ -239,7 +244,7 @@ async function init(args) {
 }
 
 /**
- * Helpher to copy skill with checks
+ * Helper to copy skill with checks
  */
 async function installSkill(name, source, target, force) {
   if (await fs.pathExists(target)) {
@@ -289,14 +294,19 @@ const TOOLS = [
  */
 function parseScope(args) {
   const scopeArg = args.find((a) => a.startsWith('--scope='))?.split('=')[1];
+  if (scopeArg && scopeArg !== 'global' && scopeArg !== 'project') {
+    console.warn(`⚠ Unknown --scope=${scopeArg}, using 'project'.`);
+  }
   if (scopeArg === 'global' || scopeArg === 'project') return scopeArg;
   if (args.includes('--global')) return 'global';
   return 'project';
 }
 
 /**
- * Detect AI tool and return { name, path }.
- * path is the absolute directory to install skills into (project or global).
+ * Detect AI tool and return { name, path, scope }.
+ * @param {string[]} args - CLI args (e.g. from process.argv.slice(2))
+ * @returns {Promise<{ name: string, path: string, scope: 'project'|'global' }|null>}
+ *   path is the absolute directory to install skills into (project or global).
  */
 async function detectTool(args) {
   const toolArg = args.find((a) => a.startsWith('--tool='))?.split('=')[1];
@@ -324,9 +334,11 @@ async function detectTool(args) {
       console.log('   Example: --tool=cursor');
       console.log('   Available tools: antigravity, cursor, claude');
     } else if (force) {
-      selected = TOOLS[0];
+      selected = TOOLS.find((t) => t.name === 'Cursor') || TOOLS[0];
     } else {
-      console.log('❌ No AI tool directory detected (.agent, .cursor, .claude).');
+      console.log(
+        '❌ No AI tool directory detected (.agent, .cursor, .claude).'
+      );
       console.log(
         '   Use --tool=<name> to force installation or ensure you are in the project root.'
       );
@@ -356,7 +368,7 @@ Options (for init/install):
   --tool=<name>    Specify tool (antigravity, cursor, claude). Required for --scope=global.
   --scope=<s>      Install destination: project (default) or global
   --global         Shorthand for --scope=global (installs to ~/.cursor/skills, etc.)
-  --force          Overwrite existing skills / Force installation
+  --force          Overwrite existing skills. With no tool dir, defaults to Cursor.
   --bootstrap      Automatically fetch, convert, and install full suite
   --from=<path>    (install only) Source directory containing skills
 

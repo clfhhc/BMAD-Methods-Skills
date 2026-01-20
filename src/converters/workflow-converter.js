@@ -19,11 +19,8 @@ export async function convertWorkflowToSkill(
   _instructionsType = null,
   options = {}
 ) {
-  const { isMarkdown, bmadRoot, bmadRepo, bmadBranch } = {
+  const { isMarkdown } = {
     isMarkdown: false,
-    bmadRoot: null,
-    bmadRepo: null,
-    bmadBranch: 'main',
     ...options,
   };
 

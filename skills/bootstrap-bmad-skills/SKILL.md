@@ -114,7 +114,7 @@ Prompt the user for each configuration setting. Offer the defaults shown:
 
 1. Skills installed at the correct destination
 2. Config files exist: `_config/core.yaml`, `_config/bmm.yaml`
-3. Paths use `{skill-root}` variable
+3. Paths under `_config` use the `{skill-root}` variable
 
 ## Guidelines
 
