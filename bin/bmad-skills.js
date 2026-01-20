@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import fs from 'fs-extra';
 
@@ -51,7 +52,9 @@ async function install(args) {
   const toolInfo = await detectTool(args);
   if (!toolInfo) return;
 
-  console.log(`📦 Installation Target: ${toolInfo.name} (${toolInfo.path})`);
+  console.log(
+    `📦 Installation Target: ${toolInfo.name} (${toolInfo.path})${toolInfo.scope === 'global' ? ' [global]' : ''}`
+  );
   console.log(`📂 Source: ${sourcePath}`);
 
   // Get skills from source
@@ -71,12 +74,12 @@ async function install(args) {
 
   console.log(`\nFound ${validSkills.length} modules to install.`);
 
-  // Install
+  // Install (toolInfo.path is absolute)
   for (const skillName of validSkills) {
     await installSkill(
       skillName,
       path.join(sourcePath, skillName),
-      path.join(process.cwd(), toolInfo.path, skillName),
+      path.join(toolInfo.path, skillName),
       force
     );
   }
@@ -105,7 +108,9 @@ async function init(args) {
     // We filter out init-specific args to avoid confusion, but keep repo/branch overrides
     const convertArgs = args.filter(
       (a) =>
-        !['init', '--bootstrap', '--force', '--tool'].some((x) => a.includes(x))
+        !['init', '--bootstrap', '--force', '--tool', '--scope', '--global'].some(
+          (x) => a === x || a.startsWith(x + '=')
+        )
     );
 
     // Temporarily override argv for the imported module
@@ -145,12 +150,16 @@ async function init(args) {
 
     // 2. Install
     console.log(`\n--- Step 2: Installing to ${toolInfo.name} ---`);
-    await install([
+    const installArgs = [
       'install',
       `--from=${tempDir}`,
-      `--tool=${toolInfo.name.toLowerCase()}`, // Ensure generic name match
-      '--force', // Always force in bootstrap mode? Or respect args? Let's use force for bootstrap convenience
-    ]);
+      `--tool=${toolInfo.name.toLowerCase()}`,
+      '--force',
+    ];
+    const scopeArg = args.find((a) => a.startsWith('--scope='));
+    if (scopeArg) installArgs.push(scopeArg);
+    else if (args.includes('--global')) installArgs.push('--global');
+    await install(installArgs);
 
     // 3. Install bundled skills (bootstrap-bmad-skills, enhance-bmad-skills)
     // We reuse the logic from the standard init, but silence it slightly or just run it
@@ -162,7 +171,7 @@ async function init(args) {
           await installSkill(
             skill,
             path.join(skillsDir, skill),
-            path.join(process.cwd(), toolInfo.path, skill),
+            path.join(toolInfo.path, skill),
             true
           );
         }
@@ -212,7 +221,7 @@ async function init(args) {
   try {
     for (const skillName of skillsToInstall) {
       const sourceDir = path.join(skillsDir, skillName);
-      const targetDir = path.resolve(process.cwd(), toolInfo.path, skillName);
+      const targetDir = path.join(toolInfo.path, skillName);
 
       await installSkill(skillName, sourceDir, targetDir, force);
     }
@@ -249,53 +258,89 @@ async function installSkill(name, source, target, force) {
 }
 
 /**
- * Helper to detect AI tool
+ * Tool definitions: project path (relative to cwd) and global path (relative to home).
+ * Paths match bootstrap-bmad-skills SKILL: .cursor/skills, .agent/skills, .claude/skills (project);
+ * ~/.cursor/skills, ~/.gemini/antigravity/skills, ~/.claude/skills (global).
+ */
+const TOOLS = [
+  {
+    name: 'Antigravity',
+    projectPath: '.agent/skills',
+    globalPath: '.gemini/antigravity/skills',
+    active: () => fs.pathExists('.agent'),
+  },
+  {
+    name: 'Cursor',
+    projectPath: '.cursor/skills',
+    globalPath: '.cursor/skills',
+    active: () => fs.pathExists('.cursor'),
+  },
+  {
+    name: 'Claude Code (Local)',
+    projectPath: '.claude/skills',
+    globalPath: '.claude/skills',
+    active: () => fs.pathExists('.claude'),
+  },
+];
+
+/**
+ * Resolve scope: --scope=global|project or --global (shorthand for --scope=global).
+ * Default is project.
+ */
+function parseScope(args) {
+  const scopeArg = args.find((a) => a.startsWith('--scope='))?.split('=')[1];
+  if (scopeArg === 'global' || scopeArg === 'project') return scopeArg;
+  if (args.includes('--global')) return 'global';
+  return 'project';
+}
+
+/**
+ * Detect AI tool and return { name, path }.
+ * path is the absolute directory to install skills into (project or global).
  */
 async function detectTool(args) {
   const toolArg = args.find((a) => a.startsWith('--tool='))?.split('=')[1];
   const force = args.includes('--force');
+  const scope = parseScope(args);
 
-  const tools = [
-    {
-      name: 'Antigravity',
-      path: '.agent/skills',
-      active: await fs.pathExists('.agent'),
-    },
-    {
-      name: 'Cursor',
-      path: '.cursor/skills',
-      active: await fs.pathExists('.cursor'),
-    },
-    {
-      name: 'Claude Code (Local)',
-      path: '.claude/skills',
-      active: await fs.pathExists('.claude'),
-    },
-  ];
-
-  let selectedTool = tools.find((t) => t.active);
-
+  let selected = null;
   if (toolArg) {
-    selectedTool = tools.find((t) =>
+    selected = TOOLS.find((t) =>
       t.name.toLowerCase().includes(toolArg.toLowerCase())
     );
   }
-
-  if (!selectedTool) {
-    if (force) {
-      // Default to antigravity if forced and not found
-      return tools[0];
+  if (!selected && scope === 'project') {
+    for (const t of TOOLS) {
+      if (await t.active()) {
+        selected = t;
+        break;
+      }
     }
-
-    console.log('❌ No AI tool directory detected (.agent, .cursor, .claude).');
-    console.log(
-      '   Use --tool=<name> to force installation or ensure you are in the project root.'
-    );
-    console.log('   Available tools: antigravity, cursor, claude');
-    return null;
   }
 
-  return selectedTool;
+  if (!selected) {
+    if (scope === 'global') {
+      console.log('❌ For --scope=global, --tool=<name> is required.');
+      console.log('   Example: --tool=cursor');
+      console.log('   Available tools: antigravity, cursor, claude');
+    } else if (force) {
+      selected = TOOLS[0];
+    } else {
+      console.log('❌ No AI tool directory detected (.agent, .cursor, .claude).');
+      console.log(
+        '   Use --tool=<name> to force installation or ensure you are in the project root.'
+      );
+      console.log('   Available tools: antigravity, cursor, claude');
+    }
+    if (!selected) return null;
+  }
+
+  const absPath =
+    scope === 'global'
+      ? path.join(os.homedir(), ...selected.globalPath.split('/'))
+      : path.resolve(process.cwd(), selected.projectPath);
+
+  return { name: selected.name, path: absPath, scope };
 }
 
 function printHelp() {
@@ -308,7 +353,9 @@ Commands:
   [no command]     Run the BMAD-to-Skills converter (proxy to convert.js)
 
 Options (for init/install):
-  --tool=<name>    Specify tool (antigravity, cursor, claude)
+  --tool=<name>    Specify tool (antigravity, cursor, claude). Required for --scope=global.
+  --scope=<s>      Install destination: project (default) or global
+  --global         Shorthand for --scope=global (installs to ~/.cursor/skills, etc.)
   --force          Overwrite existing skills / Force installation
   --bootstrap      Automatically fetch, convert, and install full suite
   --from=<path>    (install only) Source directory containing skills
