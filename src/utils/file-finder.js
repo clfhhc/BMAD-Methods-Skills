@@ -8,12 +8,14 @@ import yaml from 'js-yaml';
  * @param {string} bmadRoot - Root path of BMAD-METHOD repository
  * @param {string[]} agentPaths - Glob patterns for agent paths
  * @param {string[]} workflowPaths - Glob patterns for workflow paths
+ * @param {{ moduleExtractionPatterns?: Array<{ pattern: string, group: number }> }} [options] - Optional. moduleExtractionPatterns from config for extractModule.
  * @returns {Promise<{agents: Array, workflows: Array}>}
  */
 export async function findAgentsAndWorkflows(
   bmadRoot,
   agentPaths,
-  workflowPaths
+  workflowPaths,
+  options = {}
 ) {
   if (!bmadRoot || !(await fs.pathExists(bmadRoot))) {
     throw new Error(`BMAD root directory does not exist: ${bmadRoot}`);
@@ -23,6 +25,7 @@ export async function findAgentsAndWorkflows(
     throw new Error('agentPaths and workflowPaths must be arrays');
   }
 
+  const { moduleExtractionPatterns } = options;
   const agents = [];
   const workflows = [];
 
@@ -43,7 +46,7 @@ export async function findAgentsAndWorkflows(
           }
 
           const relativePath = path.relative(bmadRoot, filePath);
-          const module = extractModule(relativePath);
+          const module = extractModule(relativePath, moduleExtractionPatterns);
           const name = path.basename(filePath, '.agent.yaml');
 
           if (!name || name.trim() === '') {
@@ -120,7 +123,10 @@ export async function findAgentsAndWorkflows(
             }
 
             const relativePath = path.relative(bmadRoot, absolutePath);
-            const module = extractModule(relativePath);
+            const module = extractModule(
+              relativePath,
+              moduleExtractionPatterns
+            );
 
             const isMarkdown = absolutePath.endsWith('.md');
             const isXml = absolutePath.endsWith('.xml');
@@ -241,12 +247,22 @@ export async function findAgentsAndWorkflows(
   return { agents, workflows };
 }
 
-function extractModule(relativePath) {
-  // Support legacy structure: src/modules/bmm/agents/...
+function extractModule(relativePath, moduleExtractionPatterns) {
+  if (
+    Array.isArray(moduleExtractionPatterns) &&
+    moduleExtractionPatterns.length > 0
+  ) {
+    for (const { pattern, group } of moduleExtractionPatterns) {
+      const m = relativePath.match(new RegExp(pattern));
+      if (m && m[group] != null) return m[group];
+    }
+    return null;
+  }
+
+  // Fallback when moduleExtractionPatterns not provided (backward compatibility)
   const modulesMatch = relativePath.match(/^src\/modules\/([^/]+)\//);
   if (modulesMatch) return modulesMatch[1];
 
-  // Support new structure (and core): src/bmm/agents/... or src/core/agents/...
   const srcMatch = relativePath.match(/^src\/([^/]+)\//);
   if (srcMatch) return srcMatch[1];
 

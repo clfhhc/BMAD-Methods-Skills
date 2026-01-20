@@ -2,7 +2,30 @@
 
 ## Output Structure
 
-The converter generates skills organized by module in the `skills/` directory at the project root:
+The converter supports two output layouts controlled by `config.json` → `outputStructure` (default: **`"flat"`**). Flat layout is required for AI tools (Claude Code, Cursor) that discover skills only in immediate subfolders of `skills/`.
+
+### Flat (default)
+
+skills/
+├── bmm-analyst/
+│   └── SKILL.md
+├── bmm-architect/
+│   └── SKILL.md
+├── core-bmad-master/
+│   └── SKILL.md
+├── core-brainstorming/
+│   └── SKILL.md
+├── _config/
+│   ├── bmm.yaml             # Module config (was bmm/config.yaml)
+│   └── core.yaml            # Module config (was core/config.yaml)
+├── _resources/
+│   ├── excalidraw/          # excalidraw-helpers.md, validate-json-instructions.md, etc.
+│   └── bmm-excalidraw-shared/   # excalidraw-templates.yaml, excalidraw-library.json
+├── bootstrap-bmad-skills/
+└── enhance-bmad-skills/
+```
+
+### Nested (`outputStructure: "nested"`)
 
 skills/
 ├── bmm/
@@ -11,14 +34,14 @@ skills/
 │   ├── pm/
 │   │   └── SKILL.md
 │   ├── excalidraw-diagrams/
-│   │   └── _shared/         # excalidraw-templates.yaml, excalidraw-library.json
-│   ├── config.yaml          # Project configuration
-│   └── (skills...)          # BMM methodology skills (includes create-excalidraw-*)
+│   │   └── _shared/
+│   ├── config.yaml
+│   └── (skills...)
 ├── core/
-│   ├── config.yaml          # Core user settings
+│   ├── config.yaml
 │   ├── resources/
-│   │   └── excalidraw/      # excalidraw-helpers.md, validate-json-instructions.md, etc.
-│   └── (skills...)          # Core system skills
+│   │   └── excalidraw/
+│   └── (skills...)
 ```
 
 Each skill folder contains:
@@ -99,22 +122,25 @@ Migrated resources are processed recursively. Any text-based files within these 
 
 To make skills portable, path rewriting uses **config-driven regex patterns** plus a dynamic map of discovered skills:
 
-- **Source of truth**: All path-rewrite rules are defined in `config.json` under `pathPatterns`. Each entry has `pattern` (regex string), `replacement`, and optional `description`. Order in the array matters—specific rules (e.g. init, document-project) must come before generic ones.
-- **skillMap options**: The dynamic skillMap block (exact file and directory rewrites from discovered agents/workflows) uses `config.skillMap`: `sourcePrefix` (regex fragment for `{project-root}/_bmad/`), `dirLookahead` (lookahead so directory matches don’t over-match, e.g. space/quote/backtick or end), and `replacementPrefix` (e.g. `{skill-root}`). Omit `skillMap` to use built-in defaults.
+- **Source of truth**: Path-rewrite rules are in `config.json` under `pathPatterns` (nested) and `pathPatternsFlat` (flat). Each entry has `pattern` (regex), `replacement`, and optional `description`. **`outputStructure`** chooses which set is used: `"flat"` (default) uses `pathPatternsFlat`; `"nested"` uses `pathPatterns`. Only `replacement` differs (e.g. flat: `{skill-root}/bmm-analyst/`, `{skill-root}/_config/{module}.yaml`, `{skill-root}/_resources/excalidraw/`).
+- **skillMap options**: The dynamic skillMap (exact rewrites for discovered agents/workflows) uses `config.skillMap`: `sourcePrefix`, `dirLookahead`, `replacementPrefix`. `outputStructure` in `skillMapOptions` controls `/{module}/{name}/` (nested) vs `/{module}-{name}/` (flat).
 - **Pattern optimization**: Regexes are pre-compiled at startup for performance.
-- **Exact skill resolution**: A `skillMap` of discovered agents/workflows is applied after `pathPatterns` to resolve exact source paths to destination skills.
-- **Skill root variable**: Output uses `{skill-root}` instead of fragile relative paths.
-- **Standardized paths** (from `pathPatterns`): Cross-skill `{skill-root}/{module}/{skill}/SKILL.md`; resources under `data/`; Excalidraw under `core/resources/excalidraw/` and `bmm/excalidraw-diagrams/_shared/`.
-- **Migrated resources**: Paths inside files migrated via `auxiliaryResources` are rewritten using the same `pathPatterns`.
+- **Exact skill resolution**: `skillMap` is applied with `pathPatterns`/`pathPatternsFlat` to resolve source paths to destination skills.
+- **Skill root variable**: Output uses `{skill-root}`.
+- **Standardized paths**: Flat: `{skill-root}/{module}-{skill}/SKILL.md`, `{skill-root}/_config/{module}.yaml`, `{skill-root}/_resources/...`. Nested: `{skill-root}/{module}/{skill}/SKILL.md`, `{skill-root}/{module}/config.yaml`, etc.
+- **Migrated resources**: `auxiliaryResources` supports optional `destFlat`; when `outputStructure === "flat"` and `destFlat` is set, it is used instead of `dest`. Migrated content is rewritten with the active path patterns.
 
 This ensures skills work correctly regardless of where the root `skills` directory is installed and that cross-skill references are robust.
 
-The converter creates `config.yaml` files for each module. The generation logic prioritizes templates from the BMAD repository:
+The converter creates module config files. The generation logic prioritizes templates from the BMAD repository:
 
 1. **BMAD Template**: Checks for `config-template.yaml` within the module directory in the BMAD repo.
 2. **Fallback Defaults**: If no template exists in the repo, hardcoded defaults from `convert.js` are used.
 
-Skills reference these configs using `{skill-root}/{module}/config.yaml`. Users should customize these files for their project settings.
+- **Flat**: configs are `{skill-root}/_config/bmm.yaml` and `{skill-root}/_config/core.yaml`.
+- **Nested**: configs are `{skill-root}/bmm/config.yaml` and `{skill-root}/core/config.yaml`.
+
+Users should customize these files for their project.
 
 ## Placeholder Variables
 

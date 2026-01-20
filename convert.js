@@ -96,35 +96,52 @@ async function getModuleConfigContent(moduleName, bmadRoot = null) {
 }
 
 /**
- * Generate config.yaml for each module in the output directory
- * Checks BMAD repo for config templates, falls back to defaults
+ * Generate config for each module in the output directory
+ * Nested: outputDir/{module}/config.yaml. Flat: outputDir/_config/{module}.yaml
  * @param {string} outputDir - Output directory containing skills
  * @param {string|null} bmadRoot - Optional path to BMAD repo for template lookup
+ * @param {string[]} modules - Module names (e.g. config.modules)
+ * @param {string} outputStructure - 'flat' | 'nested'
  */
-async function generateModuleConfigs(outputDir, bmadRoot = null) {
+async function generateModuleConfigs(
+  outputDir,
+  bmadRoot = null,
+  modules = ['bmm', 'core'],
+  outputStructure = 'flat'
+) {
   console.log('📝 Generating module configs...');
 
-  const modules = await fs.readdir(outputDir);
-
-  for (const moduleName of modules) {
-    const modulePath = path.join(outputDir, moduleName);
-
-    // Skip if not a directory
-    if (!(await fs.stat(modulePath)).isDirectory()) {
-      continue;
+  if (outputStructure === 'flat') {
+    const configDir = path.join(outputDir, '_config');
+    await fs.ensureDir(configDir);
+    for (const moduleName of modules) {
+      const configPath = path.join(configDir, `${moduleName}.yaml`);
+      if (await fs.pathExists(configPath)) {
+        console.log(`  ⏭ _config/${moduleName}.yaml (exists)`);
+        continue;
+      }
+      const configContent = await getModuleConfigContent(moduleName, bmadRoot);
+      await fs.writeFile(configPath, configContent, 'utf8');
+      console.log(`  ✓ _config/${moduleName}.yaml`);
     }
-
-    const configPath = path.join(modulePath, 'config.yaml');
-
-    // Don't overwrite existing config
-    if (await fs.pathExists(configPath)) {
-      console.log(`  ⏭ ${moduleName}/config.yaml (exists)`);
-      continue;
+  } else {
+    for (const moduleName of modules) {
+      const modulePath = path.join(outputDir, moduleName);
+      if (
+        !(await fs.pathExists(modulePath)) ||
+        !(await fs.stat(modulePath)).isDirectory()
+      ) {
+        continue;
+      }
+      const configPath = path.join(modulePath, 'config.yaml');
+      if (await fs.pathExists(configPath)) {
+        console.log(`  ⏭ ${moduleName}/config.yaml (exists)`);
+        continue;
+      }
+      const configContent = await getModuleConfigContent(moduleName, bmadRoot);
+      await fs.writeFile(configPath, configContent, 'utf8');
+      console.log(`  ✓ ${moduleName}/config.yaml`);
     }
-
-    const configContent = await getModuleConfigContent(moduleName, bmadRoot);
-    await fs.writeFile(configPath, configContent, 'utf8');
-    console.log(`  ✓ ${moduleName}/config.yaml`);
   }
 
   console.log();
@@ -161,6 +178,7 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
     outputDir: null,
+    outputStructure: null,
     repoUrl: null,
     branch: null,
     identityCharLimit: null,
@@ -176,6 +194,8 @@ function parseArgs() {
 
     if (arg === '--output-dir' && i + 1 < args.length) {
       options.outputDir = args[++i];
+    } else if (arg.startsWith('--output-structure=')) {
+      options.outputStructure = arg.split('=')[1];
     } else if (arg === '--repo' && i + 1 < args.length) {
       options.repoUrl = args[++i];
     } else if (arg === '--branch' && i + 1 < args.length) {
@@ -224,6 +244,7 @@ Usage: pnpm convert [options]
 Options:
   --output-dir <path>        Custom output directory (default: ./skills)
                             Use a non-version-controlled folder for custom configs
+  --output-structure=flat|nested   Override config (default: flat)
   
   --repo <url>              Override BMAD repository URL
   --branch <name>           Override BMAD branch (default: main)
@@ -284,6 +305,10 @@ try {
   if (cliOptions.branch) {
     config.bmadBranch = cliOptions.branch;
     console.log(`ℹ️  Overriding BMAD Branch: ${config.bmadBranch}`);
+  }
+  if (cliOptions.outputStructure) {
+    config.outputStructure = cliOptions.outputStructure;
+    console.log(`ℹ️  Overriding output structure: ${config.outputStructure}`);
   }
 
   // Initialize enhancements config if not present
@@ -348,14 +373,23 @@ async function main() {
     );
     console.log(`✓ Repository ready at: ${bmadRoot}\n`);
 
+    const outputStructure = config.outputStructure ?? 'flat';
+    const pathPatternsEffective =
+      outputStructure === 'flat'
+        ? config.pathPatternsFlat || []
+        : config.pathPatterns || [];
+    if (outputStructure === 'flat' && !pathPatternsEffective.length) {
+      console.warn(
+        '⚠️  outputStructure is "flat" but pathPatternsFlat is missing or empty. Path rewriting may be incorrect.'
+      );
+    }
+
     // Pre-compile path pattern regexes for performance
-    if (config.pathPatterns && config.pathPatterns.length > 0) {
-      for (const item of config.pathPatterns) {
-        try {
-          item.regex = new RegExp(item.pattern, 'g');
-        } catch (e) {
-          console.warn(`⚠️  Invalid path pattern in config: ${e.message}`);
-        }
+    for (const item of pathPatternsEffective) {
+      try {
+        item.regex = new RegExp(item.pattern, 'g');
+      } catch (e) {
+        console.warn(`⚠️  Invalid path pattern in config: ${e.message}`);
       }
     }
 
@@ -367,7 +401,8 @@ async function main() {
     const { agents, workflows } = await findAgentsAndWorkflows(
       bmadRoot,
       config.agentPaths,
-      config.workflowPaths
+      config.workflowPaths,
+      { moduleExtractionPatterns: config.moduleExtractionPatterns }
     );
 
     stats.agents.total = agents.length;
@@ -399,27 +434,30 @@ async function main() {
     // Maps source file paths (relative to bmadRoot) to destination skill paths
     const skillMap = new Map();
 
-    for (const agent of agents) {
-      let relPath = path.relative(bmadRoot, agent.path);
-      // Normalize path to match BMAD content conventions
-      if (relPath.startsWith('src/modules/')) {
-        relPath = relPath.replace('src/modules/', '');
-      } else if (relPath.startsWith('src/')) {
-        relPath = relPath.replace('src/', '');
+    const stripPrefixes = config.sourcePathPrefixesToStrip;
+    const normalizeRelPath = (p) => {
+      if (Array.isArray(stripPrefixes)) {
+        for (const prefix of stripPrefixes) {
+          if (p.startsWith(prefix)) return p.slice(prefix.length);
+        }
+        return p;
       }
+      if (p.startsWith('src/modules/')) return p.replace('src/modules/', '');
+      if (p.startsWith('src/')) return p.replace('src/', '');
+      return p;
+    };
+
+    for (const agent of agents) {
+      const relPath = normalizeRelPath(path.relative(bmadRoot, agent.path));
       skillMap.set(relPath, { module: agent.module, name: agent.name });
     }
 
     for (const workflow of workflows) {
-      let relPath = path.relative(bmadRoot, workflow.path);
-      // Normalize path to match BMAD content conventions
-      if (relPath.startsWith('src/modules/')) {
-        relPath = relPath.replace('src/modules/', '');
-      } else if (relPath.startsWith('src/')) {
-        relPath = relPath.replace('src/', '');
-      }
+      const relPath = normalizeRelPath(path.relative(bmadRoot, workflow.path));
       skillMap.set(relPath, { module: workflow.module, name: workflow.name });
     }
+
+    const skillMapOptions = { ...(config.skillMap || {}), outputStructure };
 
     // Step 4: Convert agents
     if (agents.length > 0) {
@@ -437,8 +475,9 @@ async function main() {
           });
           await writeSkill(outputDir, agent.module, agent.name, skillContent, {
             skillMap,
-            pathPatterns: config.pathPatterns,
-            skillMapOptions: config.skillMap || {},
+            pathPatterns: pathPatternsEffective,
+            skillMapOptions,
+            outputStructure,
           });
           stats.agents.converted++;
           console.log(`  ✓ ${agent.module}/${agent.name}`);
@@ -482,8 +521,9 @@ async function main() {
             {
               workflowDir: workflow.workflowDir,
               skillMap,
-              pathPatterns: config.pathPatterns,
-              skillMapOptions: config.skillMap || {},
+              pathPatterns: pathPatternsEffective,
+              skillMapOptions,
+              outputStructure,
             }
           );
           stats.workflows.converted++;
@@ -508,14 +548,20 @@ async function main() {
       bmadRoot,
       outputDir,
       config.auxiliaryResources || [],
-      config.pathPatterns
+      pathPatternsEffective,
+      outputStructure
     );
 
     // Step 7: Generate module configs (checks BMAD repo for templates)
-    await generateModuleConfigs(outputDir, bmadRoot);
+    await generateModuleConfigs(
+      outputDir,
+      bmadRoot,
+      config.modules || ['bmm', 'core'],
+      outputStructure
+    );
 
     // Step 8: Generate summary
-    await printSummary();
+    await printSummary(outputStructure);
   } catch (error) {
     console.error(`\n❌ Fatal error: ${error.message}`);
     console.error(error.stack);
@@ -525,8 +571,9 @@ async function main() {
 
 /**
  * Prints conversion summary
+ * @param {string} [outputStructure] - 'flat' | 'nested'. For flat, per-module breakdown is omitted.
  */
-async function printSummary() {
+async function printSummary(outputStructure = 'flat') {
   console.log('📊 Conversion Summary\n');
   console.log('Agents:');
   console.log(`  Total: ${stats.agents.total}`);
@@ -572,11 +619,9 @@ async function printSummary() {
     );
   }
 
-  // Print per-module breakdown
-  if (totalConverted > 0) {
+  // Print per-module breakdown (nested only; flat uses top-level dirs)
+  if (totalConverted > 0 && outputStructure === 'nested') {
     console.log('\n📦 Per-module breakdown:');
-
-    // Count by module from output structure
     const outputDir = path.resolve(process.cwd(), config.outputDir);
     if (await fs.pathExists(outputDir)) {
       const modules = await fs.readdir(outputDir);
@@ -584,7 +629,6 @@ async function printSummary() {
         const modulePath = path.join(outputDir, module);
         if ((await fs.stat(modulePath)).isDirectory()) {
           const items = await fs.readdir(modulePath);
-          // Only count directories (skills), not files like config.yaml
           let skillCount = 0;
           for (const item of items) {
             const itemPath = path.join(modulePath, item);

@@ -29,10 +29,11 @@ This single command:
 4. ✅ Generates `config.yaml` for each module (core, bmm)
 5. ✅ Cleans up temporary files
 
-**After installation**, customize the generated config files at:
-- `{skills-dir}/core/config.yaml` - User preferences
-- `{skills-dir}/bmm/config.yaml` - Project settings
-- `{skills-dir}/{module}/config.yaml` - Module specific configuration
+**After installation**, customize the generated config files. With the default **flat** layout:
+- `{skills-dir}/_config/core.yaml` - User preferences
+- `{skills-dir}/_config/bmm.yaml` - Project settings
+
+With `outputStructure: "nested"`: `{skills-dir}/bmm/config.yaml`, `{skills-dir}/core/config.yaml`.
 
 ### Option B: AI-Guided Workflow
 
@@ -121,6 +122,7 @@ pnpm convert --no-examples --no-best-practices --no-related-skills
 - `--output-dir <path>` - Custom output directory (default: `./skills`)
   - Use a non-version-controlled folder for custom configs
   - Default `./skills` directory is version controlled with default settings
+- `--output-structure=flat|nested` - Override `config.json` (default: flat)
 
 - `--identity-limit <num>` - Character limit for identity in description
   - Default: no limit (recommended)

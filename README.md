@@ -24,7 +24,9 @@ This installs `bootstrap-bmad-skills` and `enhance-bmad-skills`. Then open your 
 1. **Fetches** the latest BMAD-METHOD from GitHub
 2. **Converts** agents and workflows to Claude Skills format
 3. **Installs** skills to your AI tool's directory
-4. **Generates** module config files (core, bmm)
+4. **Generates** module config files (default flat: `_config/bmm.yaml`, `_config/core.yaml`)
+
+Output uses a **flat** layout by default (`bmm-analyst/`, `core-bmad-master/`, etc.) so AI tools can discover all skills. See [Technical Reference](docs/technical-reference.md) for nested layout and options.
 
 ## Supported Tools
 

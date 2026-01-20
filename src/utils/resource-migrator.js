@@ -7,22 +7,31 @@ import { rewriteBmadPaths, shouldRewritePaths } from './path-rewriter.js';
  * @param {string} bmadRoot - Root of the fetched BMAD repo
  * @param {string} outputDir - Root of the skills output directory
  * @param {Array} auxiliaryResources - Array of migration definitions from config
+ * @param {Array|null} pathPatterns - Path patterns for rewriting (pathPatterns or pathPatternsFlat)
+ * @param {string} [outputStructure] - 'flat' | 'nested'. When 'flat' and res.destFlat exists, use destFlat.
  */
 export async function migrateResources(
   bmadRoot,
   outputDir,
   auxiliaryResources = [],
-  pathPatterns = null
+  pathPatterns = null,
+  outputStructure = 'flat'
 ) {
   console.log('📦 Migrating auxiliary resources...');
 
-  // Use config-provided resources, or empty array if none
-  const migrations = auxiliaryResources.map((res) => ({
-    src: res.src,
-    dest: res.dest,
-    name: res.name,
-    isDirectory: res.isDirectory || false,
-  }));
+  // Use config-provided resources; resolve dest vs destFlat when outputStructure is 'flat'
+  const migrations = auxiliaryResources.map((res) => {
+    const dest =
+      outputStructure === 'flat' && res.destFlat != null
+        ? res.destFlat
+        : res.dest;
+    return {
+      src: res.src,
+      dest,
+      name: res.name,
+      isDirectory: res.isDirectory || false,
+    };
+  });
 
   if (migrations.length === 0) {
     console.log('  ⚠️  No auxiliary resources configured in config.json');

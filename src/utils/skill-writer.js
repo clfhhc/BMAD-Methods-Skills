@@ -10,6 +10,7 @@ import { rewriteBmadPaths, shouldRewritePaths } from './path-rewriter.js';
  * @param {string} skillContent - SKILL.md content
  * @param {Object} options - Additional options
  * @param {string} options.workflowDir - Workflow directory (for copying templates/checklists)
+ * @param {string} [options.outputStructure] - 'flat' | 'nested'. Default 'flat'.
  * @returns {Promise<string>} Path to written SKILL.md file
  */
 export async function writeSkill(
@@ -40,7 +41,11 @@ export async function writeSkill(
     );
   }
 
-  const skillDir = path.join(outputDir, module, sanitizedName);
+  const outputStructure = options.outputStructure ?? 'flat';
+  const skillDir =
+    outputStructure === 'flat'
+      ? path.join(outputDir, `${module}-${sanitizedName}`)
+      : path.join(outputDir, module, sanitizedName);
 
   try {
     // Create directory structure
