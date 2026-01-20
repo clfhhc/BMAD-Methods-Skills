@@ -14,13 +14,21 @@ This tool converts BMAD-METHOD (Breakthrough Method for Agile AI-Driven Developm
 
 ### Option A: One-Liner (Recommended)
 
-The fastest way to get all BMAD skills installed:
+The fastest way to get all BMAD skills installed (auto-detects tool):
 
 ```bash
-npx @clfhhc/bmad-methods-skills init --tool=[TOOL] --bootstrap
+npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills && \
+npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --force && \
+rm -rf .temp
 ```
 
-Replace `[TOOL]` with `antigravity`, `cursor`, or `claude`.
+For a specific tool (e.g., Cursor):
+
+```bash
+npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills && \
+npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --tool=cursor --force && \
+rm -rf .temp
+```
 
 This single command:
 1. ✅ Fetches and converts all BMAD agents/workflows
@@ -52,7 +60,7 @@ The `BS` command starts an AI-guided workflow that:
 2. Asks if you want global or project-specific installation
 3. Walks you through custom configuration options
 
-> **Note**: The `BS` workflow now recommends using `--bootstrap` for the actual installation.
+> **Note**: The `BS` workflow now uses a unified conversion and installation process.
 
 ## Prerequisites
 
@@ -222,7 +230,6 @@ pnpm clean:all
 |---------|-------------|
 | `npx @clfhhc/bmad-methods-skills` | Run the converter (fetch + convert) |
 | `npx @clfhhc/bmad-methods-skills init` | Install bootstrap skills only |
-| `npx @clfhhc/bmad-methods-skills init --bootstrap` | **Full install**: fetch, convert, and install |
 | `npx @clfhhc/bmad-methods-skills install --from=<path>` | Install from a local directory |
 
 ### Init Options
@@ -230,5 +237,4 @@ pnpm clean:all
 | Option | Description |
 |--------|-------------|
 | `--tool=<name>` | Target tool: `antigravity`, `cursor`, or `claude` |
-| `--bootstrap` | Auto-fetch, convert, and install the full BMAD suite |
 | `--force` | Overwrite existing skills |

@@ -13,112 +13,153 @@ description: Bootstrap and install BMAD-METHOD skills for Claude Code, Cursor, A
 
 ## When You Run BS (Guided Flow)
 
-For **`BS`** or **`bootstrap-skills`**: (1) Ask Step 1 (Tool), Step 2 (Scope), and **Configure Installation**—offer defaults. (2) Summarize and **confirm** before running commands. (3) Run the one-liner or Manual (Steps 3–5) as appropriate; write the user’s config to `{skill-root}/_config/core.yaml` and `{skill-root}/_config/bmm.yaml` after install.
+Follow these phases in order. The SAME steps apply whether installing to 1 tool or multiple tools.
 
----
+### Phase 1: Gather Information
 
-## Quick Start (Unattended)
+**Step 1 - Tool Selection:** Ask which tool(s) the user is using. Multiple selections allowed:
 
-Use only when the user explicitly wants to **skip prompts** (e.g. “just run it” or “use defaults”):
-
-```bash
-npx @clfhhc/bmad-methods-skills init --tool=[TOOL] --bootstrap
-```
-
-Replace `[TOOL]` with `antigravity`, `cursor`, or `claude`.
-
-Afterward, the user can edit `{skill-root}/_config/core.yaml` and `{skill-root}/_config/bmm.yaml`, or you can run the **Configure Installation** questions and apply the answers to those files.
-
----
-
-## Manual Workflow
-
-Use when the user wants a guided experience, needs **global** install, or when you must run Fetch & Convert and Install as separate steps.
-
-### Step 1: Tool Selection
-
-Ask which tool(s) the user is using. Multiple selections are allowed:
-
-- [ ] Claude Code
 - [ ] Cursor
 - [ ] Antigravity
-- [ ] Other (Specify)
+- [ ] Claude Code
+- [ ] Other (specify)
 
-### Step 2: Installation Scope
+**Step 2 - Scope Selection:** For EACH selected tool, ask:
 
-Ask whether to install skills **globally** or **project-specific**:
+- [ ] Project-specific (skills in current project only)
+- [ ] Global (skills available in all projects)
 
-| Scope | Description | Destination |
-|-------|-------------|-------------|
-| **Global** | Skills available across all projects | Cursor: `~/.cursor/skills/`; Antigravity: `~/.gemini/antigravity/skills/`; Claude Code: `~/.claude/skills/` |
-| **Project-Specific** | Skills limited to current repo | Cursor: `.cursor/skills/`; Antigravity: `.agent/skills/`; Claude Code: `.claude/skills/` |
+**Step 3 - Configuration:** Ask each setting, offer defaults:
 
-**Note:** On **install**, use `--scope=project` (default) or `--scope=global` / `--global`. Project: `.{tool}/skills/` under cwd (run from project root). Global: `~/.cursor/skills` etc.; `--tool` required.
+| Setting | Question | Default |
+|---------|----------|---------|
+| `user_name` | What should agents call you? | BMad |
+| `communication_language` | Language for AI chat? | English |
+| `document_output_language` | Language for documents? | English |
+| `output_folder` | Where to save output files? | `_bmad-output` |
+| `project_name` | What is your project called? | *(directory name)* |
+| `user_skill_level` | Your development experience? | `intermediate` |
+| `planning_artifacts` | Where to store planning docs? | `{output_folder}/planning-artifacts` |
+| `implementation_artifacts` | Where to store implementation docs? | `{output_folder}/implementation-artifacts` |
+| `project_knowledge` | Where to store project knowledge? | `docs` |
 
-### Step 3: Fetch & Convert
+If user says "use defaults", skip individual questions and use all defaults.
+
+### Phase 2: Confirm
+
+Summarize the plan showing:
+
+1. Each tool + scope + resolved `{skill-root}` path
+2. Configuration values to apply
+3. Exact commands to run
+
+**Wait for explicit "yes" or confirmation before proceeding.**
+
+### Phase 3: Execute (Unified Steps)
+
+**IMPORTANT:** Use these SAME steps for 1 tool or multiple tools. No branching.
+
+**Step A - Convert once:**
 
 ```bash
 npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills
 ```
 
-### Step 4: Install
+Wait for this to complete before proceeding.
 
-**Project-specific** (default; run from project root):
+**Step B - Install to EACH tool:**
 
-```bash
-npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --tool=[TOOL] --force
-```
-
-**Global** (`--tool` required; works from any directory):
+For each tool+scope the user selected, run:
 
 ```bash
-npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --tool=[TOOL] --force --scope=global
+npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --tool=[TOOL] [--scope=global] --force
 ```
 
-(`--global` = `--scope=global`.)
+Replace `[TOOL]` with: `cursor`, `antigravity`, or `claude`
 
-### Step 5: Clean up
+Include `--scope=global` only if user chose global scope for that tool.
+
+**Step C - Cleanup:**
 
 ```bash
 rm -rf .temp
 ```
 
+### Phase 4: Update Configuration
+
+For EACH `{skill-root}` (one per tool installed), update the config files with user's answers:
+
+**Update `{skill-root}/_config/core.yaml`:**
+
+```yaml
+user_name: '[user_name value]'
+communication_language: [communication_language value]
+document_output_language: [document_output_language value]
+output_folder: "[output_folder value]"
+```
+
+**Update `{skill-root}/_config/bmm.yaml`:**
+
+```yaml
+project_name: '[project_name value]'
+user_skill_level: [user_skill_level value]
+planning_artifacts: "[planning_artifacts value]"
+implementation_artifacts: "[implementation_artifacts value]"
+project_knowledge: "[project_knowledge value]"
+
+# Inherited core values
+user_name: '[user_name value]'
+communication_language: [communication_language value]
+document_output_language: [document_output_language value]
+output_folder: "[output_folder value]"
+```
+
+### Phase 5: Verify
+
+For each installed tool, confirm:
+
+1. Skills directory exists with skill folders (e.g., `bmm-analyst/SKILL.md`)
+2. `{skill-root}/_config/core.yaml` exists with user's values
+3. `{skill-root}/_config/bmm.yaml` exists with user's values
+
+Report results to user.
+
 ---
 
-## Configure Installation
+## Skill Root Reference
 
-Prompt the user for each configuration setting. Offer the defaults shown:
+`{skill-root}` resolves to different paths based on tool and scope:
 
-### Core Configuration (`{skill-root}/_config/core.yaml`)
+| Tool | Project Scope | Global Scope |
+|------|---------------|--------------|
+| **Cursor** | `.cursor/skills/` | `~/.cursor/skills/` |
+| **Antigravity** | `.agent/skills/` | `~/.gemini/antigravity/skills/` |
+| **Claude Code** | `.claude/skills/` | `~/.claude/skills/` |
 
-| Setting | Question | Default |
-|---------|----------|---------|
-| `user_name` | What should agents call you? (Use your name or a team name) | BMad |
-| `communication_language` | What language should agents use when chatting with you? | English |
-| `document_output_language` | Preferred document output language? | English |
-| `output_folder` | Where should output files be saved? | `_bmad-output` |
-
-### BMM Configuration (`{skill-root}/_config/bmm.yaml`)
-
-| Setting | Question | Default |
-|---------|----------|---------|
-| `project_name` | What is your project called? | *(directory name)* |
-| `user_skill_level` | What is your development experience level? | `intermediate` |
-| `planning_artifacts` | Where should planning artifacts be stored? (Brainstorming, Briefs, PRDs, UX Designs, Architecture, Epics) | `{output_folder}/planning-artifacts` |
-| `implementation_artifacts` | Where should implementation artifacts be stored? (Sprint status, stories, reviews, retrospectives, Quick Flow output) | `{output_folder}/implementation-artifacts` |
-| `project_knowledge` | Where should long-term project knowledge be stored? (docs, research, references) | `docs` |
+**Important:** Config files MUST be inside `{skill-root}/_config/`, NOT at project root.
 
 ---
 
-## Verify
+## Quick Start (Unattended)
 
-1. Skills installed at the correct destination
-2. Config files exist: `_config/core.yaml`, `_config/bmm.yaml`
-3. Paths under `_config` use the `{skill-root}` variable
+Skip prompts and use defaults. Replace `[TOOL]` with `cursor`, `antigravity`, or `claude`.
+
+```bash
+npx @clfhhc/bmad-methods-skills --output-dir .temp/converted-skills && \
+npx @clfhhc/bmad-methods-skills install --from=.temp/converted-skills --tool=[TOOL] --force && \
+rm -rf .temp
+```
+
+*Omit `--tool` to auto-detect. Add `--scope=global` for global.*
+
+After installation, run **BS** to configure settings, or manually edit `{skill-root}/_config/core.yaml` and `{skill-root}/_config/bmm.yaml`.
+
+---
 
 ## Guidelines
 
-- **Guided Flow**: For `BS`, follow **When You Run BS (Guided Flow)** above.
-- **Confirmation**: Always summarize the plan and ask for confirmation before executing automated installation commands.
-- **Defaults**: Offer defaults—don’t force the user to answer every question if they accept the suggested values.
-- **Overwrite**: Ask before overwriting existing skills unless `--force` is used.
+- **Always confirm** before executing installation commands
+- **Offer defaults** - don't force user to answer every question
+- **No branching** - use the same convert+install steps for 1 or many tools
+- **Handle errors gracefully** - if a command fails, report it and continue if possible
+- **Verify installation** - always check that config files exist in the correct location
