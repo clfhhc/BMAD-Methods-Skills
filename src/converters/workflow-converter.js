@@ -123,16 +123,9 @@ export async function convertWorkflowToSkill(
 
       // Read instructions if available
       if (instructionsPath && (await fs.pathExists(instructionsPath))) {
-        // Create link to instructions instead of embedding
-        if (bmadRoot && bmadRepo) {
-          const relativePath = path.relative(bmadRoot, instructionsPath);
-          const repoBase = bmadRepo.replace(/\.git$/, '');
-          const link = `${repoBase}/blob/${bmadBranch}/${relativePath}`;
-          instructionsContent = `See instructions at: [${path.basename(instructionsPath)}](${link})`;
-        } else {
-          // Fallback if no repo info
-          instructionsContent = `See instructions in: ${path.basename(instructionsPath)}`;
-        }
+        // Link to local auxiliary file (instructions are copied into the skill dir by writeSkill)
+        const basename = path.basename(instructionsPath);
+        instructionsContent = `See instructions at: [${basename}](${basename})`;
       } else {
         instructionsContent = 'No instructions available.';
       }
