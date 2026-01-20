@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
+import { sanitizeSkillName } from '../utils/sanitizer.js';
 
 /**
  * Converts a BMAD workflow to Claude Skills SKILL.md format
@@ -19,7 +20,7 @@ export async function convertWorkflowToSkill(
   _instructionsType = null,
   options = {}
 ) {
-  const { isMarkdown } = {
+  const { isMarkdown, parsingPatterns = {} } = {
     isMarkdown: false,
     ...options,
   };
@@ -46,8 +47,11 @@ export async function convertWorkflowToSkill(
 
       // Parse frontmatter and content
       // More flexible regex: allows optional newlines and handles various formats
+      const frontmatterRegex =
+        parsingPatterns.frontmatterRegex ||
+        '^---\\s*\\n([\\s\\S]*?)\\n---\\s*\\n([\\s\\S]*)$';
       const frontmatterMatch = workflowContent.match(
-        /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/
+        new RegExp(frontmatterRegex)
       );
 
       if (frontmatterMatch) {
@@ -64,17 +68,19 @@ export async function convertWorkflowToSkill(
         // The markdown content IS the instructions
         // Normalize headings to ensure hierarchy fits under "## Instructions"
         // Downgrade all headings: # -> ###, ## -> ####
-        instructionsContent = parseInstructions(markdownContent).replace(
-          /^(#+)/gm,
-          '##$1'
-        );
+        const headingRegex = parsingPatterns.markdownHeadingRegex || '^(#+)';
+        instructionsContent = parseInstructions(
+          markdownContent,
+          parsingPatterns
+        ).replace(new RegExp(headingRegex, 'gm'), '##$1');
       } else {
         // No frontmatter, treat entire file as instructions
         // Try to extract basic metadata from filename or use defaults
-        instructionsContent = parseInstructions(workflowContent).replace(
-          /^(#+)/gm,
-          '##$1'
-        );
+        const headingRegex = parsingPatterns.markdownHeadingRegex || '^(#+)';
+        instructionsContent = parseInstructions(
+          workflowContent,
+          parsingPatterns
+        ).replace(new RegExp(headingRegex, 'gm'), '##$1');
       }
     } else if (workflowPath.endsWith('.xml')) {
       // workflow.xml format: pure XML file (like advanced-elicitation)
@@ -87,8 +93,12 @@ export async function convertWorkflowToSkill(
 
       // Extract metadata from XML task attributes
       // Example: <task id="..." name="Advanced Elicitation" standalone="true" ...>
-      const nameMatch = xmlContent.match(/name="([^"]+)"/);
-      const standaloneMatch = xmlContent.match(/standalone="([^"]+)"/);
+      const xmlNameRegex =
+        parsingPatterns.xmlNameAttributeRegex || 'name="([^"]+)"';
+      const xmlStandaloneRegex =
+        parsingPatterns.xmlStandaloneAttributeRegex || 'standalone="([^"]+)"';
+      const nameMatch = xmlContent.match(new RegExp(xmlNameRegex));
+      const standaloneMatch = xmlContent.match(new RegExp(xmlStandaloneRegex));
 
       workflow = {
         name: nameMatch ? nameMatch[1] : path.basename(workflowDir),
@@ -97,7 +107,7 @@ export async function convertWorkflowToSkill(
       };
 
       // Parse the XML content as instructions
-      instructionsContent = parseXmlInstructions(xmlContent);
+      instructionsContent = parseXmlInstructions(xmlContent, parsingPatterns);
     } else {
       // workflow.yaml format: separate YAML file + instructions file
       const workflowContent = await fs.readFile(workflowPath, 'utf-8');
@@ -129,7 +139,7 @@ export async function convertWorkflowToSkill(
     }
 
     // Extract workflow metadata
-    const name = sanitizeName(workflow.name || path.basename(workflowDir));
+    const name = sanitizeSkillName(workflow.name || path.basename(workflowDir));
     const description = workflow.description || 'Workflow';
     const standalone = workflow.standalone !== false; // Default to true
     const inputs = workflow.inputs || {};
@@ -276,33 +286,24 @@ export async function convertWorkflowToSkill(
 }
 
 /**
- * Sanitizes a name for use in SKILL.md frontmatter
- * @param {string} name - Original name
- * @returns {string} Sanitized name
- */
-function sanitizeName(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
-/**
  * Parses XML instructions.xml to markdown
  * @param {string} xmlContent - Raw XML instructions content
  * @returns {string} Parsed markdown
  */
-function parseXmlInstructions(xmlContent) {
+function parseXmlInstructions(xmlContent, patterns = {}) {
   let parsed = xmlContent;
 
   // Extract task-level metadata from <task> attributes
-  const taskMatch = parsed.match(/<task\s+([^>]+)>/i);
+  const taskRegex = patterns.taskTagRegex || '<task\\s+([^>]+)>';
+  const taskMatch = parsed.match(new RegExp(taskRegex, 'i'));
   let taskHeader = '';
   if (taskMatch) {
     const attrs = taskMatch[1];
-    const nameMatch = attrs.match(/name="([^"]+)"/);
-    const standaloneMatch = attrs.match(/standalone="([^"]+)"/);
+    const xmlNameRegex = patterns.xmlNameAttributeRegex || 'name="([^"]+)"';
+    const xmlStandaloneRegex =
+      patterns.xmlStandaloneAttributeRegex || 'standalone="([^"]+)"';
+    const nameMatch = attrs.match(new RegExp(xmlNameRegex));
+    const standaloneMatch = attrs.match(new RegExp(xmlStandaloneRegex));
     if (nameMatch) {
       taskHeader = `# ${nameMatch[1]}\n\n`;
       if (standaloneMatch && standaloneMatch[1] === 'true') {
@@ -312,14 +313,18 @@ function parseXmlInstructions(xmlContent) {
   }
 
   // Remove task wrapper
-  parsed = parsed.replace(/<task\s+[^>]+>/gi, '');
-  parsed = parsed.replace(/<\/task>/gi, '');
+  parsed = parsed.replace(new RegExp(taskRegex, 'gi'), '');
+  const taskCloseRegex = patterns.taskCloseTagRegex || '<\\/task>';
+  parsed = parsed.replace(new RegExp(taskCloseRegex, 'gi'), '');
 
   // Convert <llm critical="true">...</llm> to a Critical section
+  const llmCriticalRegex =
+    patterns.llmCriticalTagRegex ||
+    '<llm\\s+critical="true">([\\s\\S]*?)<\\/llm>';
   parsed = parsed.replace(
-    /<llm\s+critical="true">([\s\S]*?)<\/llm>/gi,
+    new RegExp(llmCriticalRegex, 'gi'),
     (_match, content) => {
-      const items = extractInstructionItems(content);
+      const items = extractInstructionItems(content, patterns);
       if (items.length > 0) {
         return `\n\n## Critical Instructions\n\n${items.map((i) => `> ⚠️ ${i}`).join('\n')}\n`;
       }
@@ -328,43 +333,59 @@ function parseXmlInstructions(xmlContent) {
   );
 
   // Remove any remaining <llm> tags
-  parsed = parsed.replace(/<llm[^>]*>/gi, '');
-  parsed = parsed.replace(/<\/llm>/gi, '');
+  const llmOpenRegex = patterns.llmOpenTagRegex || '<llm[^>]*>';
+  const llmCloseRegex = patterns.llmCloseTagRegex || '<\\/llm>';
+  parsed = parsed.replace(new RegExp(llmOpenRegex, 'gi'), '');
+  parsed = parsed.replace(new RegExp(llmCloseRegex, 'gi'), '');
 
   // Convert <integration description="...">...</integration>
+  const integrationRegex =
+    patterns.integrationTagRegex ||
+    '<integration\\s+description="([^"]+)">([\\s\\S]*?)<\\/integration>';
   parsed = parsed.replace(
-    /<integration\s+description="([^"]+)">([\s\S]*?)<\/integration>/gi,
+    new RegExp(integrationRegex, 'gi'),
     (_match, desc, content) => {
-      const items = extractInstructionItems(content);
+      const items = extractInstructionItems(content, patterns);
       return `\n\n## ${desc}\n\n${items.map((i) => `- ${i}`).join('\n')}\n`;
     }
   );
 
   // Convert <flow>...</flow> wrapper
-  parsed = parsed.replace(/<flow>/gi, '\n\n## Workflow Steps\n');
-  parsed = parsed.replace(/<\/flow>/gi, '');
+  const flowOpenRegex = patterns.flowOpenTagRegex || '<flow>';
+  const flowCloseRegex = patterns.flowCloseTagRegex || '<\\/flow>';
+  parsed = parsed.replace(
+    new RegExp(flowOpenRegex, 'gi'),
+    '\n\n## Workflow Steps\n'
+  );
+  parsed = parsed.replace(new RegExp(flowCloseRegex, 'gi'), '');
 
   // Convert <step n="1" title="...">
+  const stepRegex =
+    patterns.stepTagRegex ||
+    '<step\\s+n="(\\d+)"(?:\\s+title="([^"]+)")?(?:\\s+goal="([^"]+)")?[^>]*>';
+  const stepCloseRegex = patterns.stepCloseTagRegex || '<\\/step>';
   parsed = parsed.replace(
-    /<step\s+n="(\d+)"(?:\s+title="([^"]+)")?(?:\s+goal="([^"]+)")?[^>]*>/gi,
+    new RegExp(stepRegex, 'gi'),
     (_match, num, title, goal) => {
       const stepTitle = title || goal || `Step ${num}`;
       return `\n\n### Step ${num}: ${stepTitle}\n`;
     }
   );
-  parsed = parsed.replace(/<\/step>/gi, '');
+  parsed = parsed.replace(new RegExp(stepCloseRegex, 'gi'), '');
 
   // Convert <case n="...">...</case> for response handling
+  const caseRegex =
+    patterns.caseTagRegex || '<case\\s+n="([^"]+)">([\\s\\S]*?)<\\/case>';
   parsed = parsed.replace(
-    /<case\s+n="([^"]+)">([\s\S]*?)<\/case>/gi,
+    new RegExp(caseRegex, 'gi'),
     (_match, caseId, content) => {
-      const items = extractInstructionItems(content);
+      const items = extractInstructionItems(content, patterns);
       return `\n\n**Case "${caseId}":**\n${items.map((i) => `  - ${i}`).join('\n')}\n`;
     }
   );
 
   // Convert named sections like <csv-structure>, <context-analysis>, <smart-selection>, <format>, <response-handling>
-  const namedSections = [
+  const namedSections = patterns.namedSections || [
     'csv-structure',
     'context-analysis',
     'smart-selection',
@@ -375,8 +396,13 @@ function parseXmlInstructions(xmlContent) {
     'halt-conditions',
   ];
   for (const section of namedSections) {
+    const template =
+      patterns.sectionRegexTemplate ||
+      '<{{section}}[^>]*>([\\s\\S]*?)<\\/{{section}}>';
+    const placeholder =
+      patterns.sectionTemplatePlaceholderRegex || '{{section}}';
     const sectionRegex = new RegExp(
-      `<${section}[^>]*>([\\s\\S]*?)<\\/${section}>`,
+      template.replace(new RegExp(placeholder, 'g'), section),
       'gi'
     );
     parsed = parsed.replace(sectionRegex, (_match, content) => {
@@ -386,7 +412,7 @@ function parseXmlInstructions(xmlContent) {
         .join(' ');
 
       // Check if content has <i> items or is plain text
-      const items = extractInstructionItems(content);
+      const items = extractInstructionItems(content, patterns);
       if (items.length > 0) {
         return `\n\n**${sectionTitle}:**\n${items.map((i) => `- ${i}`).join('\n')}\n`;
       }
@@ -396,79 +422,108 @@ function parseXmlInstructions(xmlContent) {
   }
 
   // Convert any remaining <desc>...</desc>
-  parsed = parsed.replace(/<desc>([^<]+)<\/desc>/gi, (_match, content) => {
+  const descRegex = patterns.descTagRegex || '<desc>([^<]+)<\\/desc>';
+  parsed = parsed.replace(new RegExp(descRegex, 'gi'), (_match, content) => {
     return `\n*${content.trim()}*\n`;
   });
 
   // Convert standalone <i>...</i> items (instruction items) to bullet points
   // Use [\s\S]*? to match across newlines and normalize whitespace
-  parsed = parsed.replace(/<i>([\s\S]*?)<\/i>/gi, (_match, content) => {
-    const normalized = content.replace(/\s+/g, ' ').trim();
-    return `\n- ${normalized}`;
-  });
+  const instructionItemRegex =
+    patterns.instructionItemTagRegex || '<i>([\\s\\S]*?)<\\/i>';
+  const whitespaceRegex = patterns.whitespaceRegex || '\\s+';
+  parsed = parsed.replace(
+    new RegExp(instructionItemRegex, 'gi'),
+    (_match, content) => {
+      const normalized = content
+        .replace(new RegExp(whitespaceRegex, 'g'), ' ')
+        .trim();
+      return `\n- ${normalized}`;
+    }
+  );
 
   // Convert <action>...</action> to - **Action:** ...
-  parsed = parsed.replace(/<action>([^<]+)<\/action>/gi, (_match, content) => {
+  const actionRegex = patterns.actionTagRegex || '<action>([^<]+)<\\/action>';
+  parsed = parsed.replace(new RegExp(actionRegex, 'gi'), (_match, content) => {
     return `\n- **Action:** ${content.trim()}`;
   });
 
   // Convert <ask>...</ask> to - **Ask:** ...
-  parsed = parsed.replace(/<ask>([^<]+)<\/ask>/gi, (_match, content) => {
+  const askRegex = patterns.askTagRegex || '<ask>([^<]+)<\\/ask>';
+  parsed = parsed.replace(new RegExp(askRegex, 'gi'), (_match, content) => {
     return `\n- **Ask:** ${content.trim()}`;
   });
 
   // Convert <critical>...</critical>
+  const criticalRegex =
+    patterns.criticalTagRegex || '<critical>([^<]+)<\\/critical>';
   parsed = parsed.replace(
-    /<critical>([^<]+)<\/critical>/gi,
+    new RegExp(criticalRegex, 'gi'),
     (_match, content) => {
       return `\n> **Critical:** ${content.trim()}`;
     }
   );
 
   // Convert <output>...</output>
-  parsed = parsed.replace(/<output>([^<]+)<\/output>/gi, (_match, content) => {
+  const outputRegex = patterns.outputTagRegex || '<output>([^<]+)<\\/output>';
+  parsed = parsed.replace(new RegExp(outputRegex, 'gi'), (_match, content) => {
     return `\n**Output:** ${content.trim()}`;
   });
 
   // Convert <check if="...">...</check>
+  const checkIfRegex =
+    patterns.checkIfTagRegex || '<check\\s+if="([^"]+)">([\\s\\S]*?)<\\/check>';
+  const checkCloseRegex = patterns.checkCloseTagRegex || '<\\/check>';
   parsed = parsed.replace(
-    /<check\s+if="([^"]+)">([\s\S]*?)<\/check>/gi,
+    new RegExp(checkIfRegex, 'gi'),
     (_match, condition, content) => {
-      const items = extractInstructionItems(content);
+      const items = extractInstructionItems(content, patterns);
       if (items.length > 0) {
         return `\n\n**Check if:** ${condition}\n${items.map((i) => `- ${i}`).join('\n')}\n`;
       }
       return `\n\n**Check if:** ${condition}\n`;
     }
   );
-  parsed = parsed.replace(/<\/check>/gi, '');
+  parsed = parsed.replace(new RegExp(checkCloseRegex, 'gi'), '');
 
   // Convert <goto anchor="..."/>
+  const gotoAnchorRegex =
+    patterns.gotoAnchorTagRegex || '<goto\\s+anchor="([^"]+)"\\s*\\/>';
   parsed = parsed.replace(
-    /<goto\s+anchor="([^"]+)"\s*\/>/gi,
+    new RegExp(gotoAnchorRegex, 'gi'),
     (_match, anchor) => `\n→ Go to: **${anchor}**`
   );
 
   // Convert <invoke-workflow>...</invoke-workflow>
+  const invokeWorkflowRegex =
+    patterns.invokeWorkflowTagRegex ||
+    '<invoke-workflow>([^<]+)<\\/invoke-workflow>';
   parsed = parsed.replace(
-    /<invoke-workflow>([^<]+)<\/invoke-workflow>/gi,
+    new RegExp(invokeWorkflowRegex, 'gi'),
     (_match, content) => `\n- **Invoke Workflow:** ${content.trim()}`
   );
 
   // Convert <template-output>...</template-output>
+  const templateOutputRegex =
+    patterns.templateOutputTagRegex ||
+    '<template-output>([^<]+)<\\/template-output>';
   parsed = parsed.replace(
-    /<template-output>([^<]+)<\/template-output>/gi,
+    new RegExp(templateOutputRegex, 'gi'),
     (_match, content) => `\n**Template Output:** ${content.trim()}`
   );
 
   // Clean up any remaining XML tags
-  parsed = parsed.replace(/<[^>]+>/g, '');
+  const anyTagRegex = patterns.anyTagRegex || '<[^>]+>';
+  parsed = parsed.replace(new RegExp(anyTagRegex, 'g'), '');
 
   // Add task header at the beginning
   parsed = taskHeader + parsed;
 
   // Clean up whitespace
-  parsed = parsed.replace(/\n{3,}/g, '\n\n').trim();
+  const multipleNewlinesRegex = patterns.multipleNewlinesRegex || '\\n{3,}';
+  parsed = parsed
+    .replace(new RegExp(multipleNewlinesRegex, 'g'), '\n\n')
+    .trim();
 
   return parsed;
 }
@@ -478,20 +533,25 @@ function parseXmlInstructions(xmlContent) {
  * Handles <i>...</i> and <desc>...</desc> tags
  * Normalizes whitespace to single spaces
  */
-function extractInstructionItems(content) {
+function extractInstructionItems(content, patterns = {}) {
   const items = [];
 
   // Helper to normalize whitespace (replace newlines and multiple spaces with single space)
-  const normalize = (text) => text.replace(/\s+/g, ' ').trim();
+  const whitespaceRegex = patterns.whitespaceRegex || '\\s+';
+  const normalize = (text) =>
+    text.replace(new RegExp(whitespaceRegex, 'g'), ' ').trim();
 
   // Extract <desc> first
-  const descMatches = content.matchAll(/<desc>([\s\S]*?)<\/desc>/gi);
+  const descRegex = patterns.descTagRegex || '<desc>([^<]+)<\\/desc>';
+  const descMatches = content.matchAll(new RegExp(descRegex, 'gi'));
   for (const match of descMatches) {
     items.push(normalize(match[1]));
   }
 
   // Extract <i> items (use [\s\S] to match across newlines)
-  const iMatches = content.matchAll(/<i>([\s\S]*?)<\/i>/gi);
+  const instructionItemRegex =
+    patterns.instructionItemTagRegex || '<i>([\\s\\S]*?)<\\/i>';
+  const iMatches = content.matchAll(new RegExp(instructionItemRegex, 'gi'));
   for (const match of iMatches) {
     items.push(normalize(match[1]));
   }
@@ -504,46 +564,57 @@ function extractInstructionItems(content) {
  * @param {string} instructions - Raw instructions content
  * @returns {string} Parsed markdown
  */
-function parseInstructions(instructions) {
+function parseInstructions(instructions, patterns = {}) {
   let parsed = instructions;
 
   // Convert <step n="1" goal="..."> to ## Step 1: ...
-  parsed = parsed.replace(
-    /<step\s+n="(\d+)"(?:\s+goal="([^"]+)")?>/gi,
-    (_match, num, goal) => {
-      return goal ? `## Step ${num}: ${goal}` : `## Step ${num}:`;
-    }
-  );
+  const stepRegex =
+    patterns.markdownStepTagRegex ||
+    '<step\\s+n="(\\d+)"(?:\\s+goal="([^"]+)")?>';
+  parsed = parsed.replace(new RegExp(stepRegex, 'gi'), (_match, num, goal) => {
+    return goal ? `## Step ${num}: ${goal}` : `## Step ${num}:`;
+  });
 
   // Convert </step> to empty (just close the section)
-  parsed = parsed.replace(/<\/step>/gi, '');
+  const stepCloseRegex = patterns.stepCloseTagRegex || '<\\/step>';
+  parsed = parsed.replace(new RegExp(stepCloseRegex, 'gi'), '');
 
   // Convert <ask>...</ask> to **Ask:** ...
-  parsed = parsed.replace(/<ask>(.*?)<\/ask>/gis, (_match, content) => {
+  const askRegex = patterns.markdownAskTagRegex || '<ask>(.*?)</ask>';
+  parsed = parsed.replace(new RegExp(askRegex, 'gis'), (_match, content) => {
     return `**Ask:** ${content.trim()}`;
   });
 
   // Convert <action>...</action> to **Action:** ...
-  parsed = parsed.replace(/<action>(.*?)<\/action>/gis, (_match, content) => {
+  const actionRegex =
+    patterns.markdownActionTagRegex || '<action>(.*?)</action>';
+  parsed = parsed.replace(new RegExp(actionRegex, 'gis'), (_match, content) => {
     return `**Action:** ${content.trim()}`;
   });
 
   // Convert <check>...</check> to **Check:** ...
-  parsed = parsed.replace(/<check>(.*?)<\/check>/gis, (_match, content) => {
+  const checkRegex = patterns.markdownCheckTagRegex || '<check>(.*?)</check>';
+  parsed = parsed.replace(new RegExp(checkRegex, 'gis'), (_match, content) => {
     return `**Check:** ${content.trim()}`;
   });
 
   // Convert <invoke-workflow>...</invoke-workflow> to **Invoke Workflow:** ...
+  const invokeWorkflowRegex =
+    patterns.markdownInvokeWorkflowTagRegex ||
+    '<invoke-workflow>(.*?)</invoke-workflow>';
   parsed = parsed.replace(
-    /<invoke-workflow>(.*?)<\/invoke-workflow>/gis,
+    new RegExp(invokeWorkflowRegex, 'gis'),
     (_match, content) => {
       return `**Invoke Workflow:** ${content.trim()}`;
     }
   );
 
   // Convert <template-output>...</template-output> to **Template Output:** ...
+  const templateOutputRegex =
+    patterns.markdownTemplateOutputTagRegex ||
+    '<template-output>(.*?)</template-output>';
   parsed = parsed.replace(
-    /<template-output>(.*?)<\/template-output>/gis,
+    new RegExp(templateOutputRegex, 'gis'),
     (_match, content) => {
       return `**Template Output:** ${content.trim()}`;
     }

@@ -17,6 +17,7 @@ export async function findAgentsAndWorkflows(
   workflowPaths,
   options = {}
 ) {
+  const parsingPatterns = options.workflowParsingPatterns || {};
   if (!bmadRoot || !(await fs.pathExists(bmadRoot))) {
     throw new Error(`BMAD root directory does not exist: ${bmadRoot}`);
   }
@@ -46,7 +47,11 @@ export async function findAgentsAndWorkflows(
           }
 
           const relativePath = path.relative(bmadRoot, filePath);
-          const module = extractModule(relativePath, moduleExtractionPatterns);
+          const module = extractModule(
+            relativePath,
+            moduleExtractionPatterns,
+            options.fallbackModuleExtractionPatterns
+          );
           const name = path.basename(filePath, '.agent.yaml');
 
           if (!name || name.trim() === '') {
@@ -125,7 +130,8 @@ export async function findAgentsAndWorkflows(
             const relativePath = path.relative(bmadRoot, absolutePath);
             const module = extractModule(
               relativePath,
-              moduleExtractionPatterns
+              moduleExtractionPatterns,
+              options.fallbackModuleExtractionPatterns
             );
 
             const isMarkdown = absolutePath.endsWith('.md');
@@ -136,7 +142,10 @@ export async function findAgentsAndWorkflows(
             // Extract name from file content
             const content = await fs.readFile(absolutePath, 'utf-8');
             if (isMarkdown) {
-              const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+              const frontmatterSimpleRegex =
+                parsingPatterns.frontmatterSimpleRegex ||
+                '^---\\s*\\n([\\s\\S]*?)\\n---';
+              const match = content.match(new RegExp(frontmatterSimpleRegex));
               if (match) {
                 try {
                   const frontmatter = yaml.load(match[1]);
@@ -146,7 +155,9 @@ export async function findAgentsAndWorkflows(
                 }
               }
             } else if (isXml) {
-              const match = content.match(/name="([^"]+)"/);
+              const xmlNameRegex =
+                parsingPatterns.xmlNameRegex || 'name="([^"]+)"';
+              const match = content.match(new RegExp(xmlNameRegex));
               if (match) name = match[1];
             } else {
               try {
@@ -247,24 +258,23 @@ export async function findAgentsAndWorkflows(
   return { agents, workflows };
 }
 
-function extractModule(relativePath, moduleExtractionPatterns) {
-  if (
+function extractModule(
+  relativePath,
+  moduleExtractionPatterns,
+  fallbackPatterns
+) {
+  const patterns =
     Array.isArray(moduleExtractionPatterns) &&
     moduleExtractionPatterns.length > 0
-  ) {
-    for (const { pattern, group } of moduleExtractionPatterns) {
+      ? moduleExtractionPatterns
+      : fallbackPatterns;
+
+  if (Array.isArray(patterns) && patterns.length > 0) {
+    for (const { pattern, group } of patterns) {
       const m = relativePath.match(new RegExp(pattern));
-      if (m && m[group] != null) return m[group];
+      if (m && m[group] != null) return m[group].toLowerCase();
     }
-    return null;
   }
-
-  // Fallback when moduleExtractionPatterns not provided (backward compatibility)
-  const modulesMatch = relativePath.match(/^src\/modules\/([^/]+)\//);
-  if (modulesMatch) return modulesMatch[1];
-
-  const srcMatch = relativePath.match(/^src\/([^/]+)\//);
-  if (srcMatch) return srcMatch[1];
 
   return null;
 }

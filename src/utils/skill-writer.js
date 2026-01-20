@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import { rewriteBmadPaths, shouldRewritePaths } from './path-rewriter.js';
+import { config, sanitizeSkillName } from './sanitizer.js';
 
 /**
  * Writes a SKILL.md file and related resources to the output directory
@@ -31,11 +32,18 @@ export async function writeSkill(
     throw new Error('skillContent must be a non-empty string');
   }
 
-  // Sanitize skillName to prevent directory traversal
-  const sanitizedName = skillName
-    .replace(/[^a-z0-9-]/gi, '-')
-    .replace(/-+/g, '-');
-  if (sanitizedName !== skillName) {
+  // Sanitize skillName to prevent directory traversal and ensure consistent casing
+  const sanitizedName = sanitizeSkillName(skillName);
+  const lowercaseName = skillName.toLowerCase();
+
+  const patterns = config.sanitization || {};
+  const trailingHyphensRegex = patterns.trailingHyphensRegex || '-+$';
+
+  if (
+    sanitizedName !== lowercaseName &&
+    sanitizedName !==
+      lowercaseName.replace(new RegExp(trailingHyphensRegex), '')
+  ) {
     console.warn(
       `Warning: Skill name sanitized from "${skillName}" to "${sanitizedName}"`
     );
